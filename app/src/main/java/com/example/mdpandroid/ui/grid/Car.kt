@@ -9,34 +9,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import com.example.mdpandroid.ui.simulator.SimulatorViewModel
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.Canvas
+import com.example.mdpandroid.ui.shared.SharedViewModel
 
 @Composable
-fun Car(viewModel: SimulatorViewModel) {
+fun Car(viewModel: SharedViewModel, cellSize: Int) {
     // Observe car state
     val carPosition by viewModel.car
-    val cellSize = 15.dp
 
-    // Get the density for converting dp to pixels
-    val density = LocalDensity.current
+    // Only render if the car is not null
+    carPosition?.let { car ->
+        val cell = cellSize.dp
 
-    // Calculate the offset in Dp using density
-    val offsetX = with(density) { ((carPosition.positionX - 1) * cellSize.value).dp }
-    val offsetY = with(density) { ((carPosition.positionY - 1.5) * cellSize.value).dp }
+        // Calculate the offset in Dp using density
+        val offsetX = ((car.positionX - 1) * cell.value).dp
+        val offsetY = ((car.positionY - 1.5) * cell.value).dp
 
-    Box(
-        modifier = Modifier
-            .offset(x = offsetX, y = offsetY)
-            .size(cellSize * carPosition.width, cellSize * carPosition.height)
-            .graphicsLayer(rotationZ = carPosition.rotationAngle) // Use rotationAngle directly
-            .background(Color.Blue)
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            drawCarFrontIndicator(size)
+        Box(
+            modifier = Modifier
+                .offset(x = offsetX, y = offsetY)
+                .size(cell * car.width, cell * car.height)
+                .graphicsLayer(rotationZ = car.rotationAngle) // Use rotationAngle directly
+                .background(Color.Blue)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawCarFrontIndicator(size)
+            }
         }
     }
 }

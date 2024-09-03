@@ -1,62 +1,45 @@
 package com.example.mdpandroid.ui.grid
 
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.layout.onGloballyPositioned
-import com.example.mdpandroid.ui.simulator.SimulatorViewModel
+import com.example.mdpandroid.ui.simulator.SidebarViewModel
 
 @Composable
-fun GridMap(viewModel: SimulatorViewModel) {
-    val gridSize = 20
-    val density = LocalDensity.current
-    var gridOffset by remember { mutableStateOf(Offset.Zero) }
-
-    Box(
-        modifier = Modifier
-            .onGloballyPositioned { coordinates ->
-                // Capture the position of the grid in screen coordinates
-                gridOffset = coordinates.localToWindow(Offset.Zero)
-                viewModel.updateGridOffset(gridOffset)
-                println("Grid offset updated to: $gridOffset")
-            }
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = { offset ->
-                        println("Drag started at screen offset: $offset")
-                        viewModel.startDragging(offset)
-                    },
-                    onDrag = { change, _ ->
-                        change.consume()
-                        println("Dragging to screen offset: ${change.position}")
-                        viewModel.updateDragging(change.position)
-                    },
-                    onDragEnd = {
-                        viewModel.placeObstacleOnGrid(viewModel.dragPosition.value, gridOffset, density)
-                        viewModel.endDragging()
-                    }
-                )
-            }
+fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int) {
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            for (y in 0 until gridSize) {
-                Row {
-                    for (x in 0 until gridSize) {
-                        val isObstacle = viewModel.isObstaclePosition(x.toFloat(), y.toFloat())
-                        if (isObstacle) {
-                            ObstacleCell()
-                        } else {
-                            GridCell()
-                        }
-                    }
+        for (y in 0 until gridSize) {
+            Row {
+                for (x in 0 until gridSize) {
+                    val obstacle = viewModel.getObstacleAt(x.toFloat(), y.toFloat())
+                    val targetID = obstacle?.targetID
+
+                    GridCell(
+                        x = x,
+                        y = y,
+                        cellSize = cellSize,
+                        isObstacle = viewModel.isObstaclePosition(x.toFloat(), y.toFloat()),
+                        onClick = {
+                            if (viewModel.isAddingObstacle) {
+                                if (viewModel.isObstaclePosition(x.toFloat(), y.toFloat())) {
+                                    viewModel.removeObstacle(x.toFloat(), y.toFloat())
+                                } else {
+                                    viewModel.addObstacle(x.toFloat(), y.toFloat())
+                                }
+                            }
+                        },
+                        onDrag = {
+                            if (viewModel.isAddingObstacle) {
+                                if (viewModel.isObstaclePosition(x.toFloat(), y.toFloat())) {
+                                    viewModel.addObstacle(x.toFloat(), y.toFloat())
+                                }
+                            }
+                        },
+                        targetID = targetID // Pass the target ID to the GridCell
+                    )
                 }
             }
         }
