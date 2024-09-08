@@ -13,7 +13,13 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
+import com.example.mdpandroid.R
 import com.example.mdpandroid.ui.shared.SharedViewModel
+
+
 
 @Composable
 fun Car(viewModel: SharedViewModel, cellSize: Int) {
@@ -33,11 +39,20 @@ fun Car(viewModel: SharedViewModel, cellSize: Int) {
                 .offset(x = offsetX, y = offsetY)
                 .size(cell * car.width, cell * car.height)
                 .graphicsLayer(rotationZ = car.rotationAngle) // Use rotationAngle directly
-                .background(Color.Blue)
+                .background(Color.Black)
         ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
+            //taking the png image from res/drawable
+            val painter: Painter = painterResource(id = R.drawable.car)
+
+            // Display the image
+            Image(
+                painter = painter,
+                contentDescription = null, // Provide content description for accessibility if needed
+                modifier = Modifier.fillMaxSize()
+            )
+            /*Canvas(modifier = Modifier.fillMaxSize()) {
                 drawCarFrontIndicator(size)
-            }
+            }*/
         }
     }
 }
