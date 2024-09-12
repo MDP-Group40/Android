@@ -1,4 +1,4 @@
-package com.example.mdpandroid.ui.simulator
+package com.example.mdpandroid.ui.car
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

@@ -1,4 +1,4 @@
-package com.example.mdpandroid.ui.grid
+package com.example.mdpandroid.ui.car
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -7,12 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.geometry.Size
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -50,25 +45,6 @@ fun Car(viewModel: SharedViewModel, cellSize: Int) {
                 contentDescription = null, // Provide content description for accessibility if needed
                 modifier = Modifier.fillMaxSize()
             )
-            /*Canvas(modifier = Modifier.fillMaxSize()) {
-                drawCarFrontIndicator(size)
-            }*/
         }
     }
-}
-
-private fun DrawScope.drawCarFrontIndicator(carSize: Size) {
-    // Determine the size of the front indicator (e.g., 1/3 of the car width)
-    val indicatorSize = carSize.width / 3
-
-    // Path for the triangle at the front of the car
-    val path = Path().apply {
-        moveTo(carSize.width / 2, 0f) // Start at the top center (assuming the car's front is "up")
-        lineTo(carSize.width / 2 + indicatorSize, indicatorSize) // Bottom right corner of the triangle
-        lineTo(carSize.width / 2 - indicatorSize, indicatorSize) // Bottom left corner of the triangle
-        close()
-    }
-
-    // Draw the triangle with a different color to indicate the front
-    drawPath(path, color = Color.White)
 }

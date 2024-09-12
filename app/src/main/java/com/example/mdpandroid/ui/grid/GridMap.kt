@@ -3,12 +3,16 @@ package com.example.mdpandroid.ui.grid
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import com.example.mdpandroid.ui.simulator.SidebarViewModel
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.example.mdpandroid.ui.sidebar.SidebarViewModel
 
 @Composable
 fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int) {
     Column(
-        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .padding(6.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         for (y in 0 until gridSize) {
@@ -18,10 +22,9 @@ fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int) {
                     val targetID = obstacle?.targetID
 
                     GridCell(
-                        x = x,
-                        y = y,
                         cellSize = cellSize,
                         isObstacle = viewModel.isObstaclePosition(x.toFloat(), y.toFloat()),
+                        isTarget = viewModel.isTargetPosition(x.toFloat(), y.toFloat()),
                         onClick = {
                             if (viewModel.isAddingObstacle) {
                                 if (viewModel.isObstaclePosition(x.toFloat(), y.toFloat())) {
@@ -30,11 +33,11 @@ fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int) {
                                     viewModel.addObstacle(x.toFloat(), y.toFloat())
                                 }
                             }
-                        },
-                        onDrag = {
-                            if (viewModel.isAddingObstacle) {
-                                if (viewModel.isObstaclePosition(x.toFloat(), y.toFloat())) {
-                                    viewModel.addObstacle(x.toFloat(), y.toFloat())
+                            else if (viewModel.isAddingTarget) {
+                                if (viewModel.isTargetPosition(x.toFloat(), y.toFloat())) {
+                                    viewModel.removeTarget(x.toFloat(), y.toFloat())
+                                } else {
+                                    viewModel.addTarget(x.toFloat(), y.toFloat())
                                 }
                             }
                         },
