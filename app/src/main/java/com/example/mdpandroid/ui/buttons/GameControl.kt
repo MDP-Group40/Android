@@ -1,19 +1,36 @@
 package com.example.mdpandroid.ui.buttons
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.mdpandroid.ui.car.CarViewModel
-import androidx.compose.runtime.remember
-import com.example.mdpandroid.ui.safeNavigate
 import com.example.mdpandroid.R
+import com.example.mdpandroid.ui.car.CarViewModel
+import com.example.mdpandroid.ui.safeNavigate
 
 
 @Composable
@@ -51,7 +68,14 @@ fun LeftRightTab(navController: NavHostController){
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Button(onClick = { navController.safeNavigate("grid") }) {
+        Button(
+            onClick = { navController.safeNavigate("grid") }/*,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            )*/
+
+        )
+        {
             Text(text = "L")
         }
         Button(onClick = { navController.safeNavigate("message") }) {
@@ -95,8 +119,10 @@ fun ABButton(viewModel: CarViewModel, activeButton: String, setActiveButton: (St
             label = "A",
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
-            modifier = Modifier.size(100.dp),
-            imageResId = R.drawable.a
+            modifier = Modifier
+                .size(120.dp)
+                .offset(x = 40.dp),
+            imageResId = R.drawable.a_button
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -107,10 +133,9 @@ fun ABButton(viewModel: CarViewModel, activeButton: String, setActiveButton: (St
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
             modifier = Modifier
-                .size(100.dp)
-                .offset(x = (-80).dp),
-            imageResId = R.drawable.b
-
+                .size(120.dp)
+                .offset(x = (-40).dp),
+            imageResId = R.drawable.b_button
         )
     }
 }
@@ -118,20 +143,34 @@ fun ABButton(viewModel: CarViewModel, activeButton: String, setActiveButton: (St
 
 @Composable
 fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String) -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = Modifier
+            .size(200.dp) // Adjust size as per your layout needs
     ) {
-        MoveButton(
-            onPress = { viewModel.onMoveForward() },
-            onRelease = { viewModel.onStopMove() },
-            label = "^",
-            activeButton = activeButton,
-            setActiveButton = { setActiveButton(it) },
+        // Background image for the DPad
+        Image(
+            painter = painterResource(id = R.drawable.pad_bg),
+            contentDescription = "DPad Background",
             modifier = Modifier
-                .size(80.dp)
-                .padding(bottom = 10.dp),
-            imageResId = R.drawable.up
+                .fillMaxSize()
+                .scale(1.4f)
+                .offset(x = (-15).dp),
         )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            MoveButton(
+                onPress = { viewModel.onMoveForward() },
+                onRelease = { viewModel.onStopMove() },
+                label = "^",
+                activeButton = activeButton,
+                setActiveButton = { setActiveButton(it) },
+                modifier = Modifier
+                    .size(80.dp)
+                    .offset(x = 38.dp, y = (-28).dp),
+                imageResId = R.drawable.up,
+            )
+        }
 
         Row {
             MoveButton(
@@ -140,17 +179,21 @@ fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String
                 label = "<",
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier
+                    .size(80.dp)
+                    .offset(x = (-40).dp, y = 52.dp),
                 imageResId = R.drawable.left
             )
-            Spacer(modifier = Modifier.width(80.dp))
+
             MoveButton(
                 onPress = { viewModel.onMoveRight() },
                 onRelease = { viewModel.onStopMove() },
                 label = ">",
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier
+                    .size(80.dp)
+                    .offset(x = 40.dp, y = 52.dp),
                 imageResId = R.drawable.right
             )
         }
@@ -163,7 +206,7 @@ fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String
             setActiveButton = { setActiveButton(it) },
             modifier = Modifier
                 .size(80.dp)
-                .padding(top = 10.dp),
+                .offset(x = 38.dp, y = 128.dp),
             imageResId = R.drawable.down
         )
     }
