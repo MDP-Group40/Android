@@ -62,7 +62,6 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
-    implementation(libs.kotlinx.serialization.json.v151)
 
     // AndroidX and Compose dependencies
     implementation(libs.androidx.core.ktx)

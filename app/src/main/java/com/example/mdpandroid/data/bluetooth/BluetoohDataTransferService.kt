@@ -1,6 +1,7 @@
 package com.example.mdpandroid.data.bluetooth
 
 import android.bluetooth.BluetoothSocket
+import android.util.Log
 import com.example.mdpandroid.domain.BluetoothMessage
 import com.example.mdpandroid.domain.TransferFailedException
 import kotlinx.coroutines.Dispatchers
@@ -14,36 +15,51 @@ import kotlinx.serialization.json.Json
 class BluetoothDataTransferService(
     private val socket: BluetoothSocket
 ) {
+
     fun listenForIncomingMessages(): Flow<BluetoothMessage> {
         return flow {
             if (!socket.isConnected) {
+                Log.e("Bluetooth", "Socket is not connected. Exiting flow.")
                 return@flow
             }
 
             val buffer = ByteArray(1024) // Buffer to hold the incoming message
             while (true) {
                 val byteCount = try {
+                    Log.d("Bluetooth", "Waiting for incoming data...")
                     socket.inputStream.read(buffer) // Blocking call
                 } catch (e: IOException) {
+                    Log.e("Bluetooth", "Failed to read from input stream: ${e.message}")
                     throw TransferFailedException()
                 }
 
-                // Convert the bytes to a string, then to a BluetoothMessage
-                val incomingMessage = buffer.decodeToString(
-                    endIndex = byteCount
-                ).toBluetoothMessage(
-                    isFromLocalUser = false // Set this based on your logic
-                )
+                if (byteCount > 0) {
+                    // Convert the bytes to a string, then to a BluetoothMessage
+                    val incomingMessage = buffer.decodeToString(
+                        endIndex = byteCount
+                    ).toBluetoothMessage(
+                        isFromLocalUser = false // Set this based on your logic
+                    )
 
-                emit(incomingMessage) // Emit the BluetoothMessage via Flow
+                    Log.d("Bluetooth", "Received message: ${incomingMessage.message}")
+                    emit(incomingMessage) // Emit the BluetoothMessage via Flow
+                } else {
+                    Log.d("Bluetooth", "No data read from the stream. Byte count is 0.")
+                }
             }
         }.flowOn(Dispatchers.IO) // Ensure the flow is on the IO dispatcher
     }
 
     private fun String.toBluetoothMessage(isFromLocalUser: Boolean): BluetoothMessage {
-        // Deserialize JSON string back into BluetoothMessage
-        val message = Json.decodeFromString<BluetoothMessage>(this)
-        return message.copy(isFromLocalUser = isFromLocalUser) // Set the isFromLocalUser flag
+        return try {
+            // Deserialize JSON string back into BluetoothMessage
+            val message = Json.decodeFromString<BluetoothMessage>(this)
+            Log.d("Bluetooth", "Message deserialized successfully: $message")
+            message.copy(isFromLocalUser = isFromLocalUser) // Set the isFromLocalUser flag
+        } catch (e: Exception) {
+            Log.e("Bluetooth", "Failed to deserialize message: ${e.message}")
+            throw e
+        }
     }
 
     suspend fun sendMessage(bytes: ByteArray): Boolean {
