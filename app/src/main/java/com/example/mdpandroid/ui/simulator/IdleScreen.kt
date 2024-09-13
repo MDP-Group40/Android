@@ -44,10 +44,11 @@ fun IdleScreen(
     Scaffold(
         modifier = Modifier.background(Color.Black), // Set the background of the entire screen to black
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) {paddingview ->
+    ) { paddingview -> // Apply the paddingview parameter
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(paddingview) // Apply the padding here
         ) {
             Spacer(modifier = Modifier.height(5.dp))
 
@@ -55,8 +56,9 @@ fun IdleScreen(
 
             Spacer(modifier = Modifier.height(5.dp))
 
-            Row(modifier = Modifier
-                .weight(1f)
+            Row(
+                modifier = Modifier
+                    .weight(1f)
             ) {
 
                 Column(modifier = Modifier.weight(5f)) {
@@ -71,10 +73,12 @@ fun IdleScreen(
                         Car(sharedViewModel, cellSize)
                     }
                 }
-                Column(modifier = Modifier
-                    .weight(1f)
-                ) {
-                    Sidebar(sidebarViewModel = sidebarViewModel, sharedViewModel = sharedViewModel, snackbarHostState = snackbarHostState)
+                Column(modifier = Modifier.weight(1f)) {
+                    Sidebar(
+                        sidebarViewModel = sidebarViewModel,
+                        sharedViewModel = sharedViewModel,
+                        snackbarHostState = snackbarHostState
+                    )
                 }
             }
             // Control buttons
@@ -105,6 +109,7 @@ fun IdleScreen(
         isObstacle = true
     )
 }
+
 
 
 

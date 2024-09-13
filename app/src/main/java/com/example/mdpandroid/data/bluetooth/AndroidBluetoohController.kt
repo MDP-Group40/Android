@@ -122,7 +122,6 @@ class AndroidBluetoothController(
         }
     }
 
-
     override fun disableBluetooth() {
         if (!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
             CoroutineScope(Dispatchers.IO).launch {
@@ -144,7 +143,6 @@ class AndroidBluetoothController(
             }
         }
     }
-
 
     override fun startDiscovery() {
         if (!hasPermission(Manifest.permission.BLUETOOTH_SCAN) ||
@@ -255,38 +253,62 @@ class AndroidBluetoothController(
 
     override fun connectToDevice(device: BluetoothDeviceDomain): Flow<ConnectionResult> {
         return flow {
+            Log.d("Bluetooth", "Attempting to connect to device: ${device.address}")
+
             if (!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
+                Log.e("Bluetooth", "No BLUETOOTH_CONNECT permission")
                 throw SecurityException("No BLUETOOTH_CONNECT permission")
             }
 
-            currentClientSocket = bluetoothAdapter
-                ?.getRemoteDevice(device.address)
-                ?.createRfcommSocketToServiceRecord(
-                    UUID.fromString(SERVICE_UUID)
-                )
+            try {
+                Log.d("Bluetooth", "Getting remote device...")
+                currentClientSocket = bluetoothAdapter
+                    ?.getRemoteDevice(device.address)
+                    ?.createRfcommSocketToServiceRecord(
+                        UUID.fromString(SERVICE_UUID)
+                    )
+            } catch (e: IllegalArgumentException) {
+                Log.e("Bluetooth", "Invalid device address or UUID: ${e.message}")
+                emit(ConnectionResult.Error("Invalid device address or UUID"))
+                return@flow
+            }
 
             stopDiscovery() // Stop discovery when connecting
+            Log.d("Bluetooth", "Stopped Bluetooth discovery")
 
             currentClientSocket?.let { socket ->
                 try {
+                    Log.d("Bluetooth", "Attempting to connect to socket...")
                     socket.connect()
+                    Log.d("Bluetooth", "Connection established")
                     emit(ConnectionResult.ConnectionEstablished)
 
                     BluetoothDataTransferService(socket).also { service ->
                         dataTransferService = service
+                        Log.d("Bluetooth", "Listening for incoming messages...")
                         emitAll(
                             service.listenForIncomingMessages()
                                 .map { ConnectionResult.TransferSucceeded(it) }
                         )
                     }
                 } catch (e: IOException) {
+                    Log.e("Bluetooth", "IOException during socket connection: ${e.message}")
                     socket.close()
                     currentClientSocket = null
                     emit(ConnectionResult.Error("Connection was interrupted"))
                 }
+            } ?: run {
+                Log.e("Bluetooth", "Client socket is null, failed to create socket")
+                emit(ConnectionResult.Error("Failed to create client socket"))
             }
-        }.onCompletion {
+        }.onCompletion { cause ->
+            if (cause != null) {
+                Log.e("Bluetooth", "Connection flow completed with error: ${cause.message}")
+            } else {
+                Log.d("Bluetooth", "Connection flow completed successfully")
+            }
             closeConnection()
+            Log.d("Bluetooth", "Connection closed")
         }.flowOn(Dispatchers.IO)
     }
 
@@ -364,6 +386,6 @@ class AndroidBluetoothController(
     }
 
     companion object {
-        const val SERVICE_UUID = "27b7d1da-08c7-4505-a6d1-2459987e5e2d"
+        const val SERVICE_UUID = "0b6a013a-01b8-4b6a-9a1c-1bea99419b71"
     }
 }

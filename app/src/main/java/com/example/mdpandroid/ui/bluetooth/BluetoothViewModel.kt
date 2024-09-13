@@ -3,13 +3,16 @@ package com.example.mdpandroid.ui.bluetooth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mdpandroid.domain.BluetoothController
+import com.example.mdpandroid.domain.BluetoothDevice
 import com.example.mdpandroid.domain.BluetoothDeviceDomain
 import com.example.mdpandroid.domain.ConnectionResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 
 @HiltViewModel
@@ -17,7 +20,7 @@ open class BluetoothViewModel @Inject constructor(
     private val bluetoothController: BluetoothController
 ): ViewModel() {
 
-    val _state = MutableStateFlow(BluetoothUiState())
+    private val _state = MutableStateFlow(BluetoothUiState())
     val state = combine(
         bluetoothController.scannedDevices,
         bluetoothController.pairedDevices,
@@ -85,41 +88,63 @@ open class BluetoothViewModel @Inject constructor(
     }
 
     fun connectToDevice(device: BluetoothDeviceDomain) {
-        _state.update { it.copy(isConnecting = true, connectingDevice = device, failedDevice = null) }
+        _state.update {
+            it.copy(
+                isConnecting = true,
+                connectingDevice = device,
+                failedDevice = null,
+                errorMessage = null  // Clear error message
+            )
+        }
 
         viewModelScope.launch(Dispatchers.IO) {
-            bluetoothController.connectToDevice(device)
-                .onEach { result ->
-                    when (result) {
-                        is ConnectionResult.ConnectionEstablished -> {
-                            _state.update {
-                                it.copy(
-                                    isConnecting = false,
-                                    isConnected = true,
-                                    connectingDevice = null,
-                                    connectedDevice = device,
-                                    failedDevice = null  // Clear any previous failed state
-                                )
+            try {
+                withTimeout(10000) {  // Timeout of 10 seconds for connection
+                    bluetoothController.connectToDevice(device)
+                        .onEach { result ->
+                            when (result) {
+                                is ConnectionResult.ConnectionEstablished -> {
+                                    _state.update {
+                                        it.copy(
+                                            isConnecting = false,
+                                            isConnected = true,
+                                            connectingDevice = null,
+                                            connectedDevice = BluetoothDevice(device.name, device.address),
+                                            failedDevice = null  // Clear any previous failed state
+                                        )
+                                    }
+                                }
+                                is ConnectionResult.Error -> {
+                                    _state.update {
+                                        it.copy(
+                                            isConnecting = false,
+                                            connectingDevice = null,
+                                            failedDevice = device,  // Set the failed device
+                                            errorMessage = result.message  // Set the error message
+                                        )
+                                    }
+                                }
+                                is ConnectionResult.TransferSucceeded -> {
+                                    _state.update { currentState ->
+                                        currentState.copy(
+                                            messages = currentState.messages + result.message
+                                        )
+                                    }
+                                }
                             }
                         }
-                        is ConnectionResult.Error -> {
-                            _state.update {
-                                it.copy(
-                                    isConnecting = false,
-                                    connectingDevice = null,
-                                    failedDevice = device  // Set the failed device
-                                )
-                            }
-                        }
-                        is ConnectionResult.TransferSucceeded -> {
-                            _state.update { currentState ->
-                                currentState.copy(
-                                    messages = currentState.messages + result.message
-                                )
-                            }
-                        }
-                    }
-                }.launchIn(viewModelScope)
+                        .launchIn(viewModelScope)
+                }
+            } catch (e: TimeoutCancellationException) {
+                _state.update {
+                    it.copy(
+                        isConnecting = false,
+                        connectingDevice = null,
+                        failedDevice = device,
+                        errorMessage = "Connection timed out"
+                    )
+                }
+            }
         }
     }
 
