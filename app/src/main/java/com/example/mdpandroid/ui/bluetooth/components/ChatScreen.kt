@@ -31,7 +31,7 @@ fun ChatScreen(
     state: BluetoothUiState,
     navController: NavHostController,
     onDisconnect: () -> Unit,
-    onSendMessage: (String) -> Unit,
+    onSendMessage: (BluetoothMessage.TextMessage) -> Unit, // Updated to send TextMessage
     isConnected: Boolean
 ) {
     val message = rememberSaveable { mutableStateOf("") }
@@ -77,7 +77,7 @@ fun ChatScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         ChatMessage(
-                            message = BluetoothMessage(
+                            message = BluetoothMessage.InfoMessage(
                                 message = "Please connect to a device first",
                                 senderName = "System",
                                 isFromLocalUser = false
@@ -85,8 +85,7 @@ fun ChatScreen(
                         )
                         Spacer(modifier = Modifier.width(15.dp))
 
-
-                        Column{
+                        Column {
                             Spacer(modifier = Modifier.height(45.dp))
                             // Add SidebarButton to navigate to Bluetooth screen
                             SidebarButton(
@@ -134,7 +133,13 @@ fun ChatScreen(
             IconButton(
                 onClick = {
                     if (isConnected) {
-                        onSendMessage(message.value)
+                        // Create a TextMessage and send it
+                        val textMessage = BluetoothMessage.TextMessage(
+                            message = message.value,
+                            senderName = "Android Device", // Replace with actual sender name if available
+                            isFromLocalUser = true
+                        )
+                        onSendMessage(textMessage) // Pass the TextMessage to the callback
                         message.value = ""
                         keyboardController?.hide()
                     }
@@ -149,4 +154,5 @@ fun ChatScreen(
         }
     }
 }
+
 

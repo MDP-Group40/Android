@@ -67,7 +67,7 @@ fun SetTargetButton(
         sidebarViewModel.toggleAddingTarget()
 
         if (sidebarViewModel.isAddingTarget) {
-            sharedViewModel.showSnackbar("Click on the grid cells to add / remove the target")
+            sharedViewModel.showSnackbar("Click on the grid cells to add / remove the obstacle")
         } else {
             coroutineScope.launch { snackbarHostState.currentSnackbarData?.dismiss() }
             sharedViewModel.resetSnackbar()
@@ -113,7 +113,7 @@ fun SetObstacleButton(
         sidebarViewModel.toggleAddingObstacle()
 
         if (sidebarViewModel.isAddingObstacle) {
-            sharedViewModel.showSnackbar("Click on the grid cells to add / remove the obstacle")
+            sharedViewModel.showSnackbar("Click on the grid cells to add / remove the target")
         } else {
             coroutineScope.launch { snackbarHostState.currentSnackbarData?.dismiss() }
             sharedViewModel.resetSnackbar()
@@ -191,6 +191,7 @@ fun ResetButton(sharedViewModel: SharedViewModel) {
             sharedViewModel.resetObstacles()
             sharedViewModel.resetTargets()
             sharedViewModel.resetMode()
+            sharedViewModel.resetTargetId()
 
             // Show a snackbar for a short duration
             sharedViewModel.showSnackbar("Reset to default configuration", SnackbarDuration.Short)
@@ -267,7 +268,7 @@ fun CoordinateEntryDialog(viewModel: SidebarViewModel, isObstacle: Boolean) {
                     }
                 }
             }) {
-                val message: String = if (isObstacle) "Add Obstacle" else "Add Target"
+                val message: String = if (isObstacle) "Add Target" else "Add Obstacle"
 
                 Text(message)
             }

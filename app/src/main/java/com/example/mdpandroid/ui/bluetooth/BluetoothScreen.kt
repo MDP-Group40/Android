@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.mdpandroid.domain.BluetoothMessage
 import com.example.mdpandroid.ui.bluetooth.components.ChatScreen
 import com.example.mdpandroid.ui.bluetooth.components.ScanningScreen
 import com.example.mdpandroid.ui.buttons.GameControls
@@ -84,12 +85,15 @@ fun MessagesTab(navController: NavHostController, viewModel: BluetoothViewModel 
                 viewModel.disconnectFromDevice()
                 navController.navigate("grid") // Navigate back to connect screen on disconnect
             },
-            onSendMessage = { message -> viewModel.sendMessage(message) },
+            onSendMessage = { textMessage ->
+                viewModel.sendMessage(textMessage) // Send the text message using the updated function
+            },
             isConnected = state.isConnected, // Pass connection status to control message input
             navController = navController
         )
     }
 }
+
 
 
 

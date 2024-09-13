@@ -21,9 +21,6 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
     private val obstacles get() = sharedViewModel.obstacles
     private val target get() = sharedViewModel.target
 
-
-    private var nextTargetID = 1 // Start the targetID from 1
-
     var dialogForTarget by mutableStateOf(false)
         private set
 
@@ -51,25 +48,25 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
 
     fun toggleAddingObstacle() {
         isAddingObstacle = !isAddingObstacle
-        Log.d("SimulatorViewModel", "Obstacle adding mode: $isAddingObstacle")
+        Log.d("SimulatorViewModel", "Target adding mode: $isAddingObstacle")
     }
 
     fun toggleAddingTarget() {
         isAddingTarget = !isAddingTarget
-        Log.d("SimulatorViewModel", "Target adding mode: $isAddingObstacle")
+        Log.d("SimulatorViewModel", "Obstacle adding mode: $isAddingObstacle")
     }
 
     fun addObstacle(x: Float, y: Float) {
         viewModelScope.launch(Dispatchers.Default) {
             if (x >= 0f && x < gridSize && y >= 0f && y < gridSize && !isObstaclePosition(x, y) && !isCarPosition(x, y) && !isTargetPosition(x, y)) {
                 // Perform the add operation in the background
-                obstacles.add(Obstacle(x, y, nextTargetID))
+                obstacles.add(Obstacle(x, y, sharedViewModel.nextTargetId))
 
                 // Reassign IDs if needed
                 withContext(Dispatchers.Main) {
-                    Log.d("SimulatorViewModel", "Obstacle added at ($x, $y) TargetID: $nextTargetID")
+                    Log.d("SimulatorViewModel", "Obstacle added at ($x, $y) TargetID: $sharedViewModel.nextTargetId")
                 }
-                nextTargetID++
+                sharedViewModel.nextTargetId++
             } else {
                 withContext(Dispatchers.Main) {
                     Log.d("SimulatorViewModel", "Failed to add obstacle at ($x, $y): Position occupied or out of bounds")
@@ -131,9 +128,9 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
 
     private fun reassignTargetIDs() {
         viewModelScope.launch(Dispatchers.Default) {
-            nextTargetID = 1
+            sharedViewModel.nextTargetId = 1
             obstacles.forEach {
-                it.targetID = nextTargetID++
+                it.targetID = sharedViewModel.nextTargetId++
             }
             withContext(Dispatchers.Main) {
                 Log.d("SimulatorViewModel", "Reassigned target IDs: $obstacles")
@@ -145,8 +142,8 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
         val carPosition = car.value ?: return false  // Return false if the car is null
         val halfWidth = carPosition.width / 2
         val halfHeight = carPosition.height / 2
-        return x >= (carPosition.positionX - halfWidth) && x < (carPosition.positionX + halfWidth) &&
-                y >= (carPosition.positionY - halfHeight) && y < (carPosition.positionY + halfHeight)
+        return x > (carPosition.positionX - halfWidth) && x < (carPosition.positionX + halfWidth) &&
+                y > (carPosition.positionY - halfHeight) && y < (carPosition.positionY + halfHeight)
     }
 
 }

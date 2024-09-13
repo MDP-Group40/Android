@@ -21,6 +21,9 @@ class SharedViewModel : ViewModel() {
     // Shared obstacle list
     val obstacles = mutableStateListOf<Obstacle>()
 
+    // Shared target ID
+    var nextTargetId = 1;
+
     // Shared target list
     val target = mutableStateListOf<Target>()
 
@@ -76,5 +79,9 @@ class SharedViewModel : ViewModel() {
     // Reset mode to IDLE
     fun resetMode() {
         mode.value = Modes.IDLE // Reset mode back to IDLE
+    }
+
+    fun resetTargetId(){
+        nextTargetId = 1
     }
 }

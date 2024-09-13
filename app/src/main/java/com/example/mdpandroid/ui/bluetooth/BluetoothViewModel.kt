@@ -6,6 +6,7 @@ import com.example.mdpandroid.domain.BluetoothController
 import com.example.mdpandroid.domain.BluetoothDevice
 import com.example.mdpandroid.domain.BluetoothDeviceDomain
 import com.example.mdpandroid.domain.ConnectionResult
+import com.example.mdpandroid.domain.BluetoothMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -35,7 +36,6 @@ open class BluetoothViewModel @Inject constructor(
 
     private var deviceConnectionJob: Job? = null
 
-    // State for tracking Bluetooth and scanning status
     private val _isBluetoothEnabled = MutableStateFlow(bluetoothController.isBluetoothEnabled())
     val isBluetoothEnabled: StateFlow<Boolean> = _isBluetoothEnabled
 
@@ -48,9 +48,7 @@ open class BluetoothViewModel @Inject constructor(
         }.launchIn(viewModelScope)
 
         bluetoothController.errors.onEach { error ->
-            _state.update { it.copy(
-                errorMessage = error
-            ) }
+            _state.update { it.copy(errorMessage = error) }
         }.launchIn(viewModelScope)
     }
 
@@ -63,7 +61,6 @@ open class BluetoothViewModel @Inject constructor(
         }
         _isBluetoothEnabled.value = bluetoothController.isBluetoothEnabled()  // Update value after toggling
     }
-
 
     // Start scanning for devices
     fun startScan() {
@@ -148,7 +145,7 @@ open class BluetoothViewModel @Inject constructor(
         }
     }
 
-
+    // Disconnect from the current device
     fun disconnectFromDevice() {
         deviceConnectionJob?.cancel()
         bluetoothController.closeConnection()
@@ -160,23 +157,26 @@ open class BluetoothViewModel @Inject constructor(
         }
     }
 
+    // Wait for incoming Bluetooth connections
     fun waitForIncomingConnections() {
         _state.update { it.copy(isConnecting = true) }
-        deviceConnectionJob = viewModelScope.launch(Dispatchers.IO) {  // Ensure this runs on the background thread
+        deviceConnectionJob = viewModelScope.launch(Dispatchers.IO) {
             bluetoothController.startBluetoothServer()
-                .listen()
+                .listen()  // Listen for incoming connections and messages
         }
     }
 
-    fun sendMessage(message: String) {
-        viewModelScope.launch(Dispatchers.IO) {  // Ensure this runs on the background thread
-            val bluetoothMessage = bluetoothController.trySendMessage(message)
-            if (bluetoothMessage != null) {
-                _state.update { it.copy(messages = it.messages + bluetoothMessage) }
+    // Function to send a BluetoothMessage (Text, Info, or Obstacle)
+    fun sendMessage(bluetoothMessage: BluetoothMessage) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val sentMessage = bluetoothController.trySendMessage(bluetoothMessage)
+            if (sentMessage != null) {
+                _state.update { it.copy(messages = it.messages + sentMessage) }
             }
         }
     }
 
+    // Handle incoming messages
     private fun Flow<ConnectionResult>.listen(): Job {
         return onEach { result ->
             when (result) {
@@ -219,6 +219,7 @@ open class BluetoothViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
+    // Clear the current message
     fun clearMessage() {
         _state.update { it.copy(message = null) }
     }

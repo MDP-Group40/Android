@@ -312,7 +312,8 @@ class AndroidBluetoothController(
         }.flowOn(Dispatchers.IO)
     }
 
-    override suspend fun trySendMessage(message: String): BluetoothMessage? {
+    // Updated trySendMessage function to handle different types of BluetoothMessage
+    override suspend fun trySendMessage(bluetoothMessage: BluetoothMessage): BluetoothMessage? {
         if (!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
             return null
         }
@@ -322,19 +323,18 @@ class AndroidBluetoothController(
         }
 
         return withContext(Dispatchers.IO) { // Ensuring background thread
-            val bluetoothMessage = BluetoothMessage(
-                message = message,
-                senderName = bluetoothAdapter?.name ?: "Unknown name",
-                isFromLocalUser = true
-            )
+            // Use sendBluetoothMessage from BluetoothDataTransferService
+            val isSent = dataTransferService?.sendBluetoothMessage(bluetoothMessage) ?: false
 
-            val messageJson = Json.encodeToString(bluetoothMessage)
-
-            dataTransferService?.sendMessage(messageJson.toByteArray())
-
-            return@withContext bluetoothMessage
+            if (isSent) {
+                return@withContext bluetoothMessage // Return the sent message if successful
+            } else {
+                Log.e("BluetoothController", "Failed to send Bluetooth message.")
+                return@withContext null
+            }
         }
     }
+
 
 
     override fun closeConnection() {
