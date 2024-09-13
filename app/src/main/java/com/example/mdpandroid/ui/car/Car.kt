@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import com.example.mdpandroid.R
@@ -30,14 +31,16 @@ fun Car(viewModel: SharedViewModel, cellSize: Int) {
         val offsetY = ((car.positionY - 1.5) * cell.value).dp
 
         Box(
+
             modifier = Modifier
                 .offset(x = offsetX, y = offsetY)
                 .size(cell * car.width, cell * car.height)
                 .graphicsLayer(rotationZ = car.rotationAngle) // Use rotationAngle directly
                 .background(Color.Black)
+
         ) {
             //taking the png image from res/drawable
-            val painter: Painter = painterResource(id = R.drawable.car)
+            val painter: Painter = painterResource(id = R.drawable.pac_man)
 
             // Display the image
             Image(
@@ -45,6 +48,7 @@ fun Car(viewModel: SharedViewModel, cellSize: Int) {
                 contentDescription = null, // Provide content description for accessibility if needed
                 modifier = Modifier.fillMaxSize()
             )
+
         }
     }
 }

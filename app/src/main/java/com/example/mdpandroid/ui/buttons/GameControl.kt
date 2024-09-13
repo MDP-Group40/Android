@@ -13,6 +13,8 @@ import androidx.navigation.NavHostController
 import com.example.mdpandroid.ui.car.CarViewModel
 import androidx.compose.runtime.remember
 import com.example.mdpandroid.ui.safeNavigate
+import com.example.mdpandroid.R
+
 
 @Composable
 fun GameControls(viewModel: CarViewModel, navController: NavHostController, modifier: Modifier) {
@@ -93,16 +95,22 @@ fun ABButton(viewModel: CarViewModel, activeButton: String, setActiveButton: (St
             label = "A",
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
-            modifier = Modifier.size(80.dp)
+            modifier = Modifier.size(100.dp),
+            imageResId = R.drawable.a
         )
-        Spacer(modifier = Modifier.height(25.dp))
+
+        Spacer(modifier = Modifier.height(20.dp))
         MoveButton(
             onPress = { viewModel.onMoveBackward() },
             onRelease = { viewModel.onStopMove() },
             label = "B",
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
-            modifier = Modifier.size(80.dp)
+            modifier = Modifier
+                .size(100.dp)
+                .offset(x = (-80).dp),
+            imageResId = R.drawable.b
+
         )
     }
 }
@@ -121,7 +129,8 @@ fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String
             setActiveButton = { setActiveButton(it) },
             modifier = Modifier
                 .size(80.dp)
-                .padding(bottom = 10.dp)
+                .padding(bottom = 10.dp),
+            imageResId = R.drawable.up
         )
 
         Row {
@@ -131,7 +140,8 @@ fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String
                 label = "<",
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
-                modifier = Modifier.size(80.dp)
+                modifier = Modifier.size(80.dp),
+                imageResId = R.drawable.left
             )
             Spacer(modifier = Modifier.width(80.dp))
             MoveButton(
@@ -140,7 +150,8 @@ fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String
                 label = ">",
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
-                modifier = Modifier.size(80.dp)
+                modifier = Modifier.size(80.dp),
+                imageResId = R.drawable.right
             )
         }
 
@@ -152,7 +163,8 @@ fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String
             setActiveButton = { setActiveButton(it) },
             modifier = Modifier
                 .size(80.dp)
-                .padding(top = 10.dp)
+                .padding(top = 10.dp),
+            imageResId = R.drawable.down
         )
     }
 }

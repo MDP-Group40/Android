@@ -11,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -128,7 +129,15 @@ fun ChatScreen(
                 placeholder = {
                     Text(text = "Message...", color = Color.Black)
                 },
-                enabled = isConnected // Disable the text field if not connected
+                enabled = isConnected, // Disable the text field if not connected
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,  // Set text color when focused
+                    unfocusedTextColor = Color.Black,  // Set text color when unfocused
+                    focusedLabelColor = Color.Black,  // Label color when focused
+                    cursorColor = Color.Black,  // Cursor color
+                    focusedIndicatorColor = Color.Black,  // Underline color when focused
+                    unfocusedIndicatorColor = Color.Gray  // Underline color when unfocused
+                )
             )
             IconButton(
                 onClick = {
