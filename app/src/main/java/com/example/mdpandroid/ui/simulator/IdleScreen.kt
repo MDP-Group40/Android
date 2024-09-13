@@ -8,7 +8,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -17,20 +16,27 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mdpandroid.ui.buttons.GameControls
-import com.example.mdpandroid.ui.grid.Car
+import com.example.mdpandroid.ui.car.Car
+import com.example.mdpandroid.ui.car.CarViewModel
+import com.example.mdpandroid.ui.car.CarViewModelFactory
 import com.example.mdpandroid.ui.grid.GridMap
+import com.example.mdpandroid.ui.header.StatusDisplay
 import com.example.mdpandroid.ui.shared.SharedViewModel
+import com.example.mdpandroid.ui.sidebar.CoordinateEntryDialog
+import com.example.mdpandroid.ui.sidebar.Sidebar
+import com.example.mdpandroid.ui.sidebar.SidebarViewModel
+import com.example.mdpandroid.ui.sidebar.SidebarViewModelFactory
 import kotlinx.coroutines.launch
 
 @Composable
-fun GridScreen(
-    sharedViewModel: SharedViewModel = viewModel(),
-    simulatorViewModel: CarViewModel = viewModel(factory = CarViewModelFactory(sharedViewModel)),
+fun IdleScreen(
+    sharedViewModel: SharedViewModel,
+    carViewModel: CarViewModel = viewModel(factory = CarViewModelFactory(sharedViewModel)),
     sidebarViewModel: SidebarViewModel = viewModel(factory = SidebarViewModelFactory(sharedViewModel)),
     navController: NavHostController
 ) {
     val gridSize = 20
-    val cellSize = 23
+    val cellSize = 24
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
@@ -38,16 +44,19 @@ fun GridScreen(
     Scaffold(
         modifier = Modifier.background(Color.Black), // Set the background of the entire screen to black
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { paddingValues ->
+    ) {paddingview ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(5.dp))
+
+            StatusDisplay(status = "IDLE")
+
+            Spacer(modifier = Modifier.height(5.dp))
 
             Row(modifier = Modifier
                 .weight(1f)
-                .padding(8.dp)
             ) {
 
                 Column(modifier = Modifier.weight(5f)) {
@@ -65,30 +74,36 @@ fun GridScreen(
                 Column(modifier = Modifier
                     .weight(1f)
                 ) {
-                    SetObstacleButton(sidebarViewModel, sharedViewModel, snackbarHostState)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    SetCarButton(sharedViewModel = sharedViewModel)
+                    Sidebar(sidebarViewModel = sidebarViewModel, sharedViewModel = sharedViewModel, snackbarHostState = snackbarHostState)
                 }
             }
             // Control buttons
-            GameControls(simulatorViewModel, navController)
+            GameControls(
+                carViewModel, navController, Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+            )
         }
     }
 
-    // Observe snackbarMessage from SharedViewModel
-    val snackbarMessage by sharedViewModel.snackbarMessage
-
-    LaunchedEffect(snackbarMessage) {
-        snackbarMessage?.let {
+    LaunchedEffect(sharedViewModel.snackbarMessage.value) {
+        sharedViewModel.snackbarMessage.value?.let { message ->
             coroutineScope.launch {
-                snackbarHostState.showSnackbar(it, duration = SnackbarDuration.Indefinite)
+                val duration = sharedViewModel.snackbarDuration.value ?: SnackbarDuration.Indefinite
+                snackbarHostState.showSnackbar(message, duration = duration)
             }
         }
     }
 
-    if (sidebarViewModel.showCoordinateDialog) {
-        CoordinateEntryDialog(sidebarViewModel)
-    }
+    if (sidebarViewModel.dialogForTarget) CoordinateEntryDialog(
+        viewModel = sidebarViewModel,
+        isObstacle = false
+    )
+
+    if (sidebarViewModel.dialogForObstacle) CoordinateEntryDialog(
+        viewModel = sidebarViewModel,
+        isObstacle = true
+    )
 }
 
 

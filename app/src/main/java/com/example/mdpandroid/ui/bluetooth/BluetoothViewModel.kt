@@ -2,34 +2,204 @@ package com.example.mdpandroid.ui.bluetooth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mdpandroid.data.domain.BluetoothController
+import com.example.mdpandroid.domain.BluetoothController
+import com.example.mdpandroid.domain.BluetoothDeviceDomain
+import com.example.mdpandroid.domain.ConnectionResult
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class BluetoothViewModel(
+@HiltViewModel
+open class BluetoothViewModel @Inject constructor(
     private val bluetoothController: BluetoothController
-) : ViewModel() {
+): ViewModel() {
 
-    private val _uiState = MutableStateFlow(BluetoothUiState())
-    val uiState: StateFlow<BluetoothUiState> = combine(
+    val _state = MutableStateFlow(BluetoothUiState())
+    val state = combine(
         bluetoothController.scannedDevices,
         bluetoothController.pairedDevices,
-        _uiState
-    ) { scannedDevices, pairedDevices, uiState ->
-        uiState.copy(
+        _state
+    ) { scannedDevices, pairedDevices, state ->
+        state.copy(
             scannedDevices = scannedDevices,
-            pairedDevices = pairedDevices
+            pairedDevices = pairedDevices,
+            messages = if (state.isConnected) state.messages else emptyList()
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = BluetoothUiState()
-    )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
 
-    fun startScan() {
-        bluetoothController.startDiscovery()
+    private var deviceConnectionJob: Job? = null
+
+    // State for tracking Bluetooth and scanning status
+    private val _isBluetoothEnabled = MutableStateFlow(bluetoothController.isBluetoothEnabled())
+    val isBluetoothEnabled: StateFlow<Boolean> = _isBluetoothEnabled
+
+    private val _isScanning = MutableStateFlow(false)
+    val isScanning: StateFlow<Boolean> = _isScanning
+
+    init {
+        bluetoothController.isConnected.onEach { isConnected ->
+            _state.update { it.copy(isConnected = isConnected) }
+        }.launchIn(viewModelScope)
+
+        bluetoothController.errors.onEach { error ->
+            _state.update { it.copy(
+                errorMessage = error
+            ) }
+        }.launchIn(viewModelScope)
     }
 
+    // Toggle Bluetooth ON/OFF
+    fun toggleBluetooth() {
+        if (_isBluetoothEnabled.value) {
+            bluetoothController.disableBluetooth()
+        } else {
+            bluetoothController.enableBluetooth()
+        }
+        _isBluetoothEnabled.value = bluetoothController.isBluetoothEnabled()  // Update value after toggling
+    }
+
+
+    // Start scanning for devices
+    fun startScan() {
+        if (!_isScanning.value) {
+            viewModelScope.launch(Dispatchers.IO) {
+                bluetoothController.startDiscovery()
+                _isScanning.value = true
+                _state.update { it.copy(message = "Scanning started...") }
+            }
+        }
+    }
+
+    // Stop scanning for devices
     fun stopScan() {
-        bluetoothController.stopDiscovery()
+        if (_isScanning.value) {
+            viewModelScope.launch(Dispatchers.IO) {
+                bluetoothController.stopDiscovery()
+                _isScanning.value = false
+                _state.update { it.copy(message = "Scanning stopped...") }
+            }
+        }
+    }
+
+    fun connectToDevice(device: BluetoothDeviceDomain) {
+        _state.update { it.copy(isConnecting = true, connectingDevice = device, failedDevice = null) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            bluetoothController.connectToDevice(device)
+                .onEach { result ->
+                    when (result) {
+                        is ConnectionResult.ConnectionEstablished -> {
+                            _state.update {
+                                it.copy(
+                                    isConnecting = false,
+                                    isConnected = true,
+                                    connectingDevice = null,
+                                    connectedDevice = device,
+                                    failedDevice = null  // Clear any previous failed state
+                                )
+                            }
+                        }
+                        is ConnectionResult.Error -> {
+                            _state.update {
+                                it.copy(
+                                    isConnecting = false,
+                                    connectingDevice = null,
+                                    failedDevice = device  // Set the failed device
+                                )
+                            }
+                        }
+                        is ConnectionResult.TransferSucceeded -> {
+                            _state.update { currentState ->
+                                currentState.copy(
+                                    messages = currentState.messages + result.message
+                                )
+                            }
+                        }
+                    }
+                }.launchIn(viewModelScope)
+        }
+    }
+
+
+    fun disconnectFromDevice() {
+        deviceConnectionJob?.cancel()
+        bluetoothController.closeConnection()
+        _state.update {
+            it.copy(
+                isConnecting = false,
+                isConnected = false
+            )
+        }
+    }
+
+    fun waitForIncomingConnections() {
+        _state.update { it.copy(isConnecting = true) }
+        deviceConnectionJob = viewModelScope.launch(Dispatchers.IO) {  // Ensure this runs on the background thread
+            bluetoothController.startBluetoothServer()
+                .listen()
+        }
+    }
+
+    fun sendMessage(message: String) {
+        viewModelScope.launch(Dispatchers.IO) {  // Ensure this runs on the background thread
+            val bluetoothMessage = bluetoothController.trySendMessage(message)
+            if (bluetoothMessage != null) {
+                _state.update { it.copy(messages = it.messages + bluetoothMessage) }
+            }
+        }
+    }
+
+    private fun Flow<ConnectionResult>.listen(): Job {
+        return onEach { result ->
+            when (result) {
+                ConnectionResult.ConnectionEstablished -> {
+                    _state.update {
+                        it.copy(
+                            isConnected = true,
+                            isConnecting = false,
+                            errorMessage = null
+                        )
+                    }
+                }
+                is ConnectionResult.TransferSucceeded -> {
+                    _state.update {
+                        it.copy(
+                            messages = it.messages + result.message
+                        )
+                    }
+                }
+                is ConnectionResult.Error -> {
+                    _state.update {
+                        it.copy(
+                            isConnected = false,
+                            isConnecting = false,
+                            errorMessage = result.message
+                        )
+                    }
+                }
+            }
+        }
+            .catch {
+                bluetoothController.closeConnection()
+                _state.update {
+                    it.copy(
+                        isConnected = false,
+                        isConnecting = false,
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun clearMessage() {
+        _state.update { it.copy(message = null) }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        bluetoothController.closeConnection()  // Call the close function here
     }
 }
