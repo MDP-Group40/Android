@@ -46,9 +46,11 @@ fun GameControls(viewModel: CarViewModel, navController: NavHostController, modi
         verticalArrangement = Arrangement.SpaceAround,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        LeftRightTab(navController = navController)
+        //LeftRightTab(navController = navController)
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset(y = 30.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -62,28 +64,47 @@ fun GameControls(viewModel: CarViewModel, navController: NavHostController, modi
     }
 }
 
-@Composable
+/*@Composable
 fun LeftRightTab(navController: NavHostController){
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Button(
-            onClick = { navController.safeNavigate("grid") }/*,
+            onClick = { navController.safeNavigate("grid") },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent
-            )*/
+            ),
+            modifier = Modifier
+                .constrainAs(buttonA) {
+                    top.linkTo(parent.top, margin = 150.dp)
+                    start.linkTo(parent.start, margin = 10.dp)
+                }
+                .zIndex(1f),  // Ensure button is on top of other elements,
+            content = {
+                Box(
+                    modifier = Modifier
+                        .offset(x = (-15).dp, y = (-30).dp), // Ensure the Box takes the full size of the button
+                    contentAlignment = Alignment.Center // Align content to the center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.l_button), // Your image resource
+                        contentDescription = "A Button",
+                        modifier = Modifier
 
+                    )
+                }
+            }
         )
-        {
-            Text(text = "L")
-        }
-        Button(onClick = { navController.safeNavigate("message") }) {
+
+        Button(
+            onClick = { navController.safeNavigate("message") }
+        ){
             Text(text = "R")
         }
     }
 }
-
+*/
 @Composable
 fun BottomButtons(navController: NavHostController){
 

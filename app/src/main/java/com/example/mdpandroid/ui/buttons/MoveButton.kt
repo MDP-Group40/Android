@@ -61,6 +61,7 @@ fun MoveButton(
         interactionSource = interactionSource,
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,
+            contentColor = backgroundColor
         ),
         content = {
             Box(
@@ -77,17 +78,5 @@ fun MoveButton(
             }
         },
         modifier = modifier
-
-
-    ) //{
-
-
-        /*val painter: Painter = painterResource(imageResId)
-
-        Image(
-            painter = painter, // Use the image from resources
-            contentDescription = null, // Optional: Add description for accessibility
-            modifier = Modifier.size(50.dp) // Adjust the image size
-        )*/
-    //}
+    )
 }
