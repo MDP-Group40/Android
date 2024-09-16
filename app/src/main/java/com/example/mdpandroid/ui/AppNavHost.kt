@@ -18,15 +18,19 @@ fun AppNavHost(navController: NavHostController) {
 
     NavHost(navController = navController, startDestination = "grid") {
         composable("grid") {
+            sharedViewModel.resetSnackbar()
             IdleScreen(navController = navController, sharedViewModel = sharedViewModel)
         }
         composable("bluetooth") {
+            sharedViewModel.resetSnackbar()
             ConnectingTab(navController = navController, sharedViewModel = sharedViewModel) // Navigate to connect tab
         }
         composable("message") {
+            sharedViewModel.resetSnackbar()
             MessagesTab(navController)  // Navigate to message tab
         }
         composable("start") {
+            sharedViewModel.resetSnackbar()
             RunningScreen(sharedViewModel = sharedViewModel, navController = navController) // Navigate to message tab
         }
     }

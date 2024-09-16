@@ -1,8 +1,6 @@
 package com.example.mdpandroid.ui.simulator
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,11 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -25,19 +19,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.mdpandroid.R
 import com.example.mdpandroid.ui.buttons.GameControls
 import com.example.mdpandroid.ui.car.Car
 import com.example.mdpandroid.ui.car.CarViewModel
 import com.example.mdpandroid.ui.car.CarViewModelFactory
 import com.example.mdpandroid.ui.grid.GridMap
 import com.example.mdpandroid.ui.header.StatusDisplay
-import com.example.mdpandroid.ui.safeNavigate
 import com.example.mdpandroid.ui.shared.SharedViewModel
 import com.example.mdpandroid.ui.sidebar.CoordinateEntryDialog
 import com.example.mdpandroid.ui.sidebar.Sidebar
@@ -61,7 +51,7 @@ fun IdleScreen(
     Scaffold(
         modifier = Modifier.background(Color.Black), // Set the background of the entire screen to black
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { paddingview -> // Apply the paddingview parameter
+    ) { paddingview ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -100,7 +90,10 @@ fun IdleScreen(
             }
             // Control buttons
             GameControls(
-                carViewModel, navController, Modifier
+                carViewModel,
+                navController,
+                sharedViewModel,
+                Modifier
                     .fillMaxWidth()
                     .height(250.dp)
             )

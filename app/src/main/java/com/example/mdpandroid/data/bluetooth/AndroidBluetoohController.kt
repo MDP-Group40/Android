@@ -327,6 +327,7 @@ class AndroidBluetoothController(
             val isSent = dataTransferService?.sendBluetoothMessage(bluetoothMessage) ?: false
 
             if (isSent) {
+                Log.e("BluetoothController", "Send Bluetooth message.\n $bluetoothMessage")
                 return@withContext bluetoothMessage // Return the sent message if successful
             } else {
                 Log.e("BluetoothController", "Failed to send Bluetooth message.")

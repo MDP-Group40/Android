@@ -1,5 +1,7 @@
 package com.example.mdpandroid.data.model
 
+import kotlinx.serialization.Serializable
+
 enum class Orientation {
     NORTH,
     NORTHNORTHEAST, NORTHEAST, NORTHEASTEAST,
@@ -11,14 +13,15 @@ enum class Orientation {
     NORTHWESTWEST, NORTHWEST, NORTHNORTHWEST
 }
 
+@Serializable
 data class Car(
     val width: Float = 2f,  // Width and height can remain floats to match the coordinate system
     val height: Float = 3f,
-    override var positionX: Float,  // x-coordinate of the center of the car
-    override var positionY: Float,  // y-coordinate of the center of the car
+    var positionX: Float,  // x-coordinate of the center of the car
+    var positionY: Float,  // y-coordinate of the center of the car
     var orientation: Orientation,
     var rotationAngle: Float = 0f // Track the current rotation angle
-) : Grid(positionX, positionY) {
+) {
 
     // Function to set rotationAngle based on the current orientation
     fun setRotationAngleBasedOnOrientation() {

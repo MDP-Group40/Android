@@ -61,6 +61,7 @@ fun ConnectingTab(
             GameControls(
                 viewModel = carViewModel,
                 navController = navController,
+                sharedViewModel = sharedViewModel,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)  // Set a fixed height for GameControls
@@ -82,11 +83,10 @@ fun MessagesTab(navController: NavHostController, viewModel: BluetoothViewModel 
         ChatScreen(
             state = state,
             onDisconnect = {
-                viewModel.disconnectFromDevice()
                 navController.navigate("grid") // Navigate back to connect screen on disconnect
             },
             onSendMessage = { textMessage ->
-                viewModel.sendMessage(textMessage) // Send the text message using the updated function
+                viewModel.sendMessage(textMessage)
             },
             isConnected = state.isConnected, // Pass connection status to control message input
             navController = navController

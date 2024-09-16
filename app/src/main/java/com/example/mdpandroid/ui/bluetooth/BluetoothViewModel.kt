@@ -226,6 +226,7 @@ open class BluetoothViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
+        clearMessage()
         bluetoothController.closeConnection()  // Call the close function here
     }
 }
