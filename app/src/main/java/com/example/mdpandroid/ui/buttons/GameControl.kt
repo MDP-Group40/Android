@@ -2,6 +2,7 @@ package com.example.mdpandroid.ui.buttons
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,12 +43,11 @@ fun GameControls(viewModel: CarViewModel, navController: NavHostController, modi
         modifier = Modifier
             .background(Color(0xFF04A9FC))
             .height(380.dp)
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.SpaceAround,
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        //LeftRightTab(navController = navController)
+        LeftRightTab(navController = navController)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -64,47 +65,36 @@ fun GameControls(viewModel: CarViewModel, navController: NavHostController, modi
     }
 }
 
-/*@Composable
-fun LeftRightTab(navController: NavHostController){
+@Composable
+fun LeftRightTab(navController: NavHostController) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .offset(y = (-20).dp),
         horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
     ) {
-        Button(
-            onClick = { navController.safeNavigate("grid") },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent
-            ),
+        // Left Button (L)
+        Image(
+            painter = painterResource(id = R.drawable.l_button),
+            contentDescription = "L Button",
             modifier = Modifier
-                .constrainAs(buttonA) {
-                    top.linkTo(parent.top, margin = 150.dp)
-                    start.linkTo(parent.start, margin = 10.dp)
-                }
-                .zIndex(1f),  // Ensure button is on top of other elements,
-            content = {
-                Box(
-                    modifier = Modifier
-                        .offset(x = (-15).dp, y = (-30).dp), // Ensure the Box takes the full size of the button
-                    contentAlignment = Alignment.Center // Align content to the center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.l_button), // Your image resource
-                        contentDescription = "A Button",
-                        modifier = Modifier
-
-                    )
-                }
-            }
+                .size(width = 200.dp, height = 65.dp) // Use rectangular size
+                .clickable { navController.safeNavigate("grid") } // Apply clickable directly to the image
         )
 
-        Button(
-            onClick = { navController.safeNavigate("message") }
-        ){
-            Text(text = "R")
-        }
+        // Right Button (R)
+        Image(
+            painter = painterResource(id = R.drawable.r_button),
+            contentDescription = "R Button",
+            modifier = Modifier
+                .size(width = 200.dp, height = 65.dp) // Use rectangular size
+                .clickable { navController.safeNavigate("message") } // Apply clickable directly to the image
+        )
     }
 }
-*/
+
+
 @Composable
 fun BottomButtons(navController: NavHostController){
 
@@ -125,6 +115,7 @@ fun BottomButtons(navController: NavHostController){
     }
 
 }
+
 
 @Composable
 fun ABButton(viewModel: CarViewModel, activeButton: String, setActiveButton: (String) -> Unit){
@@ -155,7 +146,7 @@ fun ABButton(viewModel: CarViewModel, activeButton: String, setActiveButton: (St
             setActiveButton = { setActiveButton(it) },
             modifier = Modifier
                 .size(120.dp)
-                .offset(x = (-40).dp),
+                .offset(x = (-30).dp),
             imageResId = R.drawable.b_button
         )
     }

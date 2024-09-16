@@ -98,14 +98,6 @@ fun IdleScreen(
                     )
                 }
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .offset(y = 120.dp)
-                    .zIndex(1f)
-            ) {
-                LeftRightTab(navController = navController)
-            }
             // Control buttons
             GameControls(
                 carViewModel, navController, Modifier
@@ -134,47 +126,6 @@ fun IdleScreen(
         viewModel = sidebarViewModel,
         isObstacle = true
     )
-}
-
-
-@Composable
-fun LeftRightTab(navController: NavHostController) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        // Left Button (L)
-        Button(
-            onClick = { navController.safeNavigate("grid") },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent // Make button background transparent
-            ),
-            modifier = Modifier.size(230.dp), // Adjust size for the button
-            content = {
-                Image(
-                    painter = painterResource(id = R.drawable.l_button), // Your image resource
-                    contentDescription = "L Button",
-                    modifier = Modifier.fillMaxSize() // Make sure image fills button space
-                )
-            }
-        )
-
-        // Right Button (R)
-        Button(
-            onClick = { navController.safeNavigate("message") },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent
-            ),
-            modifier = Modifier.size(230.dp), // Ensure consistent size for the button
-            content = {
-                Image(
-                    painter = painterResource(id = R.drawable.r_button), // Your image resource
-                    contentDescription = "R Button",
-                    modifier = Modifier.fillMaxSize() // Make sure image fills button space
-                )
-            }
-        )
-    }
 }
 
 
