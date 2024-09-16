@@ -1,7 +1,7 @@
 package com.example.mdpandroid.ui
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,7 +14,7 @@ import com.example.mdpandroid.ui.simulator.RunningScreen
 @Composable
 fun AppNavHost(navController: NavHostController) {
 
-    val sharedViewModel: SharedViewModel = viewModel()  // Ensures the same instance is used
+    val sharedViewModel: SharedViewModel = hiltViewModel()  // Ensures the same instance is used
 
     NavHost(navController = navController, startDestination = "grid") {
         composable("grid") {

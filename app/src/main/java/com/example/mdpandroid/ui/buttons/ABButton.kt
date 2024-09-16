@@ -11,10 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.mdpandroid.R
-import com.example.mdpandroid.ui.car.CarViewModel
 
 @Composable
-fun ABButton(viewModel: CarViewModel, activeButton: String, setActiveButton: (String) -> Unit){
+fun ABButton(viewModel: ControlViewModel,
+             activeButton: String,
+             setActiveButton: (String) -> Unit){
     // Right A and B buttons for moving forward/backward
 
     Column(
@@ -22,8 +23,10 @@ fun ABButton(viewModel: CarViewModel, activeButton: String, setActiveButton: (St
         verticalArrangement = Arrangement.Center
     ) {
         MoveButton(
-            onPress = { viewModel.onMoveForward() },
-            onRelease = { viewModel.onStopMove() },
+            onPress = {
+                viewModel.handleButtonA()
+            },
+            onRelease = { viewModel.handleStopMovement() },
             label = "A",
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
@@ -35,8 +38,10 @@ fun ABButton(viewModel: CarViewModel, activeButton: String, setActiveButton: (St
 
         Spacer(modifier = Modifier.height(20.dp))
         MoveButton(
-            onPress = { viewModel.onMoveBackward() },
-            onRelease = { viewModel.onStopMove() },
+            onPress = {
+                viewModel.handleButtonB()
+            },
+            onRelease = { viewModel.handleStopMovement() },
             label = "B",
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },

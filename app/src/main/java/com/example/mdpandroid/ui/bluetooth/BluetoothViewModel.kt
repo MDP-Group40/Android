@@ -1,5 +1,6 @@
 package com.example.mdpandroid.ui.bluetooth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mdpandroid.domain.BluetoothController
@@ -168,10 +169,20 @@ open class BluetoothViewModel @Inject constructor(
 
     // Function to send a BluetoothMessage (Text, Info, or Obstacle)
     fun sendMessage(bluetoothMessage: BluetoothMessage) {
+        // Log the message being sent
+        Log.d("BluetoothViewModel", "Sending message: $bluetoothMessage")
+
         viewModelScope.launch(Dispatchers.IO) {
             val sentMessage = bluetoothController.trySendMessage(bluetoothMessage)
             if (sentMessage != null) {
+                // Log the sent message after it has been successfully sent
+                Log.d("BluetoothViewModel", "Message sent successfully: $sentMessage")
+
+                // Update the state with the sent message
                 _state.update { it.copy(messages = it.messages + sentMessage) }
+            } else {
+                // Log failure if the message could not be sent
+                Log.e("BluetoothViewModel", "Failed to send message: $bluetoothMessage")
             }
         }
     }
@@ -220,7 +231,7 @@ open class BluetoothViewModel @Inject constructor(
     }
 
     // Clear the current message
-    fun clearMessage() {
+    private fun clearMessage() {
         _state.update { it.copy(message = null) }
     }
 

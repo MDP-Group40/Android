@@ -9,8 +9,11 @@ import com.example.mdpandroid.data.model.Obstacle
 import com.example.mdpandroid.data.model.Orientation
 import com.example.mdpandroid.data.model.Target
 import com.example.mdpandroid.data.model.Modes
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class SharedViewModel : ViewModel() {
+@HiltViewModel
+class SharedViewModel @Inject constructor() : ViewModel() {
 
     // Shared grid size
     val gridSize = 20f
@@ -22,13 +25,15 @@ class SharedViewModel : ViewModel() {
     val obstacles = mutableStateListOf<Obstacle>()
 
     // Shared target ID
-    var nextTargetId = 1;
+    var nextTargetId = 1
 
     // Shared target list
     val target = mutableStateListOf<Target>()
 
     // Mode set
     val mode = mutableStateOf(Modes.IDLE)
+
+    val drivingMode = mutableStateOf(false)
 
     // Snackbar message state
     var snackbarMessage = mutableStateOf<String?>(null)
@@ -81,7 +86,8 @@ class SharedViewModel : ViewModel() {
         mode.value = Modes.IDLE // Reset mode back to IDLE
     }
 
-    fun resetTargetId(){
+    fun resetTargetId() {
         nextTargetId = 1
     }
+
 }

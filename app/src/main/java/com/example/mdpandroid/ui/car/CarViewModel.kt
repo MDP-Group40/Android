@@ -1,24 +1,31 @@
 package com.example.mdpandroid.ui.car
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mdpandroid.data.model.Car
 import com.example.mdpandroid.data.model.Orientation
+import com.example.mdpandroid.domain.BluetoothController
+import com.example.mdpandroid.domain.BluetoothMessage
+import com.example.mdpandroid.ui.buttons.ControlViewModel
 import com.example.mdpandroid.ui.shared.SharedViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
+class CarViewModel(
+    private val sharedViewModel: SharedViewModel
+) : ControlViewModel() {
 
-class CarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel() {
-
+    // CarViewModel-specific properties
     private val gridSize get() = sharedViewModel.gridSize
-    private val car get() = sharedViewModel.car
+    val car get() = sharedViewModel.car
     private val obstacles get() = sharedViewModel.obstacles
     private val target get() = sharedViewModel.target
+    private val drivingMode get() = sharedViewModel.drivingMode
 
     private val movementStepMajor = 0.5f   // Major step (1 grid unit)
     private val movementStepMinor = 0.25f // Minor step (0.5 grid unit)
@@ -32,41 +39,51 @@ class CarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel() {
     // Job for managing the loop
     private var movementJob: Job? = null
 
-    private fun resetAllMovementFlags() {
-        isMovingForward = false
-        isMovingBackward = false
-        isTurningLeft = false
-        isTurningRight = false
-    }
-
-    fun onMoveForward() {
+    // Abstract methods from ControlViewModel, now implemented in CarViewModel
+    override fun handleButtonUp() {
         resetAllMovementFlags() // Ensure only forward movement is active
         isMovingForward = true
         startMovementLoop()
     }
 
-    fun onMoveBackward() {
+    override fun handleButtonDown() {
         resetAllMovementFlags() // Ensure only backward movement is active
         isMovingBackward = true
         startMovementLoop()
     }
 
-    fun onMoveLeft() {
+    override fun handleButtonLeft() {
         resetAllMovementFlags() // Ensure only left turning is active
         isTurningLeft = true
         startMovementLoop()
     }
 
-    fun onMoveRight() {
+    override fun handleButtonRight() {
         resetAllMovementFlags() // Ensure only right turning is active
         isTurningRight = true
         startMovementLoop()
     }
 
-    // Reset all flags when stopping
-    fun onStopMove() {
+    override fun handleButtonA() {
+        // If button A is used for moving forward, this can call handleButtonUp
+        handleButtonUp()
+    }
+
+    override fun handleButtonB() {
+        // If button B is used for moving backward, this can call handleButtonDown
+        handleButtonDown()
+    }
+
+    override fun handleStopMovement() {
         resetAllMovementFlags()
         stopMovementLoop()
+    }
+
+    private fun resetAllMovementFlags() {
+        isMovingForward = false
+        isMovingBackward = false
+        isTurningLeft = false
+        isTurningRight = false
     }
 
     private fun startMovementLoop(angleChange: Float = 22.5f) {
@@ -108,7 +125,6 @@ class CarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel() {
 
                         // Check if any movement is still happening
                         if (!isMovingForward && !isMovingBackward && !isTurningLeft && !isTurningRight) {
-                            // No actions are ongoing, stop the movement loop
                             stopMovementLoop()
                         }
                     }
@@ -119,6 +135,7 @@ class CarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel() {
             stopMovementLoop()
         }
     }
+
 
     private fun stopMovementLoop() {
         movementJob?.cancel()

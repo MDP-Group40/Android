@@ -39,8 +39,8 @@ sealed class BluetoothMessage {
     }
 
     @Serializable
-    @SerialName("obstacles")
-    data class ObstacleMessage(
+    @SerialName("start")
+    data class StartMessage(
         val car: Car,
         val obstacles: List<Obstacle>,
         val target: List<Target>,
@@ -50,6 +50,19 @@ sealed class BluetoothMessage {
     ) : BluetoothMessage() {
         override fun toString(): String {
             return "Car = (${car.positionX}, ${car.positionY}) Obstacle List=${obstacles.size} Target List = ${target.size}, mode = {$mode}"
+        }
+    }
+
+    @Serializable
+    @SerialName("movement")
+    data class MovementMessage(
+        val car: Car,
+        val direction: String,
+        override val senderName: String,
+        override val isFromLocalUser: Boolean
+    ) : BluetoothMessage() {
+        override fun toString(): String {
+            return "Car = (${car.positionX}, ${car.positionY}), Direction = $direction"
         }
     }
 }

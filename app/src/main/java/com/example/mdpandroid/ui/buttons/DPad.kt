@@ -1,5 +1,6 @@
 package com.example.mdpandroid.ui.buttons
 
+import android.service.controls.Control
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,10 +15,13 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.mdpandroid.R
-import com.example.mdpandroid.ui.car.CarViewModel
 
 @Composable
-fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String) -> Unit) {
+fun DPad(
+    viewModel: ControlViewModel,
+    activeButton: String,
+    setActiveButton: (String) -> Unit
+) {
     Box(
         modifier = Modifier
             .size(200.dp) // Adjust size as per your layout needs
@@ -31,12 +35,16 @@ fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String
                 .scale(1.4f)
                 .offset(x = (-15).dp),
         )
+
+        // UP button (forward)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             MoveButton(
-                onPress = { viewModel.onMoveForward() },
-                onRelease = { viewModel.onStopMove() },
+                onPress = {
+                    viewModel.handleButtonUp()
+                },
+                onRelease = { viewModel.handleStopMovement() },
                 label = "^",
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
@@ -47,10 +55,13 @@ fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String
             )
         }
 
+        // LEFT and RIGHT buttons
         Row {
             MoveButton(
-                onPress = { viewModel.onMoveLeft() },
-                onRelease = { viewModel.onStopMove() },
+                onPress = {
+                    viewModel.handleButtonLeft()
+                },
+                onRelease = { viewModel.handleStopMovement() },
                 label = "<",
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
@@ -61,8 +72,10 @@ fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String
             )
 
             MoveButton(
-                onPress = { viewModel.onMoveRight() },
-                onRelease = { viewModel.onStopMove() },
+                onPress = {
+                    viewModel.handleButtonRight()
+                },
+                onRelease = { viewModel.handleStopMovement() },
                 label = ">",
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
@@ -73,9 +86,12 @@ fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String
             )
         }
 
+        // DOWN button (backward)
         MoveButton(
-            onPress = { viewModel.onMoveBackward() },
-            onRelease = { viewModel.onStopMove() },
+            onPress = {
+                viewModel.handleButtonDown()
+            },
+            onRelease = { viewModel.handleStopMovement() },
             label = "_",
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
@@ -86,3 +102,5 @@ fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String
         )
     }
 }
+
+

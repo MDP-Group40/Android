@@ -62,6 +62,8 @@ fun Sidebar(
     ImageRecognitionButton(viewModel = sidebarViewModel, sharedViewModel)
     Spacer(modifier = Modifier.height(7.dp))
     FastestPathButton(viewModel = sidebarViewModel, sharedViewModel)
+    Spacer(modifier = Modifier.height(15.dp))
+    DrivingModeButton(viewModel = sidebarViewModel, sharedViewModel)
 }
 
 @Composable
@@ -194,6 +196,19 @@ fun FastestPathButton(viewModel: SidebarViewModel, sharedViewModel: SharedViewMo
         handleSingleClick = {
             viewModel.toggleMode(Modes.FASTESTPATH)
             Log.d("ButtonAction", "Fastest Path Button Clicked")
+        }
+    )
+}
+
+@Composable
+fun DrivingModeButton(viewModel: SidebarViewModel, sharedViewModel: SharedViewModel) {
+    val backgroundColor = if (sharedViewModel.drivingMode.value) Color.DarkGray else Color.Black
+
+    SidebarButton(
+        text = "DRIVING\nMODE",
+        backgroundColor = backgroundColor,
+        handleSingleClick = {
+            viewModel.toggleDrivingMode()
         }
     )
 }

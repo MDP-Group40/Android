@@ -22,7 +22,7 @@ import com.example.mdpandroid.ui.shared.SharedViewModel
 
 @Composable
 fun GameControls(
-    viewModel: CarViewModel,
+    viewModel: ControlViewModel,
     navController: NavHostController,
     sharedViewModel: SharedViewModel,
     modifier: Modifier) {

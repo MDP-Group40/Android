@@ -23,13 +23,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 @SuppressLint("MissingPermission")
 class AndroidBluetoothController(
     private val context: Context
 ): BluetoothController {
+
 
     private val bluetoothManager by lazy {
         context.getSystemService(BluetoothManager::class.java)
