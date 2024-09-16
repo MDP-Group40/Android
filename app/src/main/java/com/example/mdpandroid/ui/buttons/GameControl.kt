@@ -50,8 +50,7 @@ fun GameControls(viewModel: CarViewModel, navController: NavHostController, modi
         LeftRightTab(navController = navController)
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = 30.dp),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
