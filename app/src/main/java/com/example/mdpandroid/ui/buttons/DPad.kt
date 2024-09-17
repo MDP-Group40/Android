@@ -1,6 +1,6 @@
 package com.example.mdpandroid.ui.buttons
 
-import android.service.controls.Control
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,14 +14,42 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mdpandroid.R
+import com.example.mdpandroid.domain.BluetoothMessage
+import com.example.mdpandroid.ui.bluetooth.BluetoothViewModel
+import com.example.mdpandroid.ui.shared.SharedViewModel
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @Composable
 fun DPad(
     viewModel: ControlViewModel,
     activeButton: String,
-    setActiveButton: (String) -> Unit
+    setActiveButton: (String) -> Unit,
+    bluetoothViewModel: BluetoothViewModel = hiltViewModel(),
+    sharedViewModel: SharedViewModel
 ) {
+    fun signalMovement(direction:String){
+        if (sharedViewModel.drivingMode.value){  // Check if drivingMode is true
+            val message = sharedViewModel.car.value?.let {
+                BluetoothMessage.MovementMessage(
+                    car = it,
+                    direction = direction,
+                    senderName = "Android Device",
+                    isFromLocalUser = true
+                )
+            }
+
+            // Serialize the message to JSON
+            val jsonMessage = Json.encodeToString(message)
+            Log.d("DPADS", "Sending Movement Message: $jsonMessage")
+
+            if (message != null) {
+                bluetoothViewModel.sendMessage(message)
+            }
+        }
+    }
     Box(
         modifier = Modifier
             .size(200.dp) // Adjust size as per your layout needs
@@ -43,8 +71,12 @@ fun DPad(
             MoveButton(
                 onPress = {
                     viewModel.handleButtonUp()
+                    signalMovement("FORWARD")
                 },
-                onRelease = { viewModel.handleStopMovement() },
+                onRelease = {
+                    viewModel.handleStopMovement()
+                    signalMovement("STOP")
+                },
                 label = "^",
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
@@ -60,8 +92,12 @@ fun DPad(
             MoveButton(
                 onPress = {
                     viewModel.handleButtonLeft()
+                    signalMovement("LEFT")
                 },
-                onRelease = { viewModel.handleStopMovement() },
+                onRelease = {
+                    viewModel.handleStopMovement()
+                    signalMovement("STOP")
+                },
                 label = "<",
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
@@ -74,8 +110,12 @@ fun DPad(
             MoveButton(
                 onPress = {
                     viewModel.handleButtonRight()
+                    signalMovement("RIGHT")
                 },
-                onRelease = { viewModel.handleStopMovement() },
+                onRelease = {
+                    viewModel.handleStopMovement()
+                    signalMovement("STOP")
+                },
                 label = ">",
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
@@ -90,8 +130,12 @@ fun DPad(
         MoveButton(
             onPress = {
                 viewModel.handleButtonDown()
+                signalMovement("BACKWARD")
             },
-            onRelease = { viewModel.handleStopMovement() },
+            onRelease = {
+                viewModel.handleStopMovement()
+                signalMovement("STOP")
+            },
             label = "_",
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
@@ -102,5 +146,3 @@ fun DPad(
         )
     }
 }
-
-

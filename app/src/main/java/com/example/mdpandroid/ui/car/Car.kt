@@ -14,8 +14,6 @@ import androidx.compose.ui.res.painterResource
 import com.example.mdpandroid.R
 import com.example.mdpandroid.ui.shared.SharedViewModel
 
-
-
 @Composable
 fun Car(viewModel: SharedViewModel, cellSize: Int) {
     // Observe car state

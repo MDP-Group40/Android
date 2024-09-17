@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.mdpandroid.ui.car.CarViewModel
 import com.example.mdpandroid.ui.shared.SharedViewModel
 
 
@@ -44,14 +43,16 @@ fun GameControls(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Left D-Pad for turning
-            DPad(viewModel, activeButton, setActiveButton = { activeButton = it })
+            DPad(viewModel = viewModel, activeButton = activeButton, setActiveButton = { activeButton = it }, sharedViewModel = sharedViewModel)
 
-            ABButton(viewModel = viewModel, activeButton = activeButton, setActiveButton = { activeButton = it} )
+            ABButton(viewModel = viewModel, activeButton = activeButton, setActiveButton = { activeButton = it}, sharedViewModel = sharedViewModel)
         }
 
         BottomButtons(navController = navController, sharedViewModel = sharedViewModel)
     }
 }
+
+
 
 
 

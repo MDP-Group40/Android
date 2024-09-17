@@ -1,5 +1,6 @@
 package com.example.mdpandroid.ui.buttons
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,13 +11,41 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mdpandroid.R
+import com.example.mdpandroid.domain.BluetoothMessage
+import com.example.mdpandroid.ui.bluetooth.BluetoothViewModel
+import com.example.mdpandroid.ui.shared.SharedViewModel
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @Composable
 fun ABButton(viewModel: ControlViewModel,
              activeButton: String,
-             setActiveButton: (String) -> Unit){
-    // Right A and B buttons for moving forward/backward
+             setActiveButton: (String) -> Unit,
+             bluetoothViewModel: BluetoothViewModel = hiltViewModel(),
+             sharedViewModel: SharedViewModel){
+
+    fun signalMovement(direction:String){
+        if (sharedViewModel.drivingMode.value){  // Check if drivingMode is true
+            val message = sharedViewModel.car.value?.let {
+                BluetoothMessage.MovementMessage(
+                    car = it,
+                    direction = direction,
+                    senderName = "Android Device",
+                    isFromLocalUser = true
+                )
+            }
+
+            // Serialize the message to JSON
+            val jsonMessage = Json.encodeToString(message)
+            Log.d("ABButton", "Sending Movement Message: $jsonMessage")
+
+            if (message != null) {
+                bluetoothViewModel.sendMessage(message)
+            }
+        }
+    }
 
     Column(
         horizontalAlignment = Alignment.End,
@@ -25,8 +54,12 @@ fun ABButton(viewModel: ControlViewModel,
         MoveButton(
             onPress = {
                 viewModel.handleButtonA()
+                signalMovement("FORWARD")
             },
-            onRelease = { viewModel.handleStopMovement() },
+            onRelease = {
+                viewModel.handleStopMovement()
+                signalMovement("STOP")
+            },
             label = "A",
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
@@ -40,8 +73,12 @@ fun ABButton(viewModel: ControlViewModel,
         MoveButton(
             onPress = {
                 viewModel.handleButtonB()
+                signalMovement("BACKWARD")
             },
-            onRelease = { viewModel.handleStopMovement() },
+            onRelease = {
+                viewModel.handleStopMovement()
+                signalMovement("STOP")
+            },
             label = "B",
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
