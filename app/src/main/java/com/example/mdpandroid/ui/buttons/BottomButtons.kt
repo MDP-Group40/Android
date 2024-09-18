@@ -1,20 +1,30 @@
 package com.example.mdpandroid.ui.buttons
 
 import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.example.mdpandroid.R
 import com.example.mdpandroid.data.model.Modes
 import com.example.mdpandroid.domain.BluetoothMessage
 import com.example.mdpandroid.ui.bluetooth.BluetoothViewModel
@@ -77,19 +87,83 @@ fun BottomButtons(
     }
 
     // Layout for the buttons
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .offset(y = (-10).dp)
     ) {
-        Button(onClick = { navController.safeNavigate("bluetooth") }) {
-            Text(text = "Menu")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                onClick = { navController.safeNavigate("bluetooth") },
+                modifier = Modifier,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent
+                ),
+                content = {
+                    Box(
+                        modifier = Modifier
+                            .background(Color.Transparent),
+                        contentAlignment = Alignment.Center // Align content to the center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.tiny_button), // Your image resource
+                            contentDescription = "Menu Button",
+                            modifier = Modifier
+                                .background(Color.Transparent)
+                        )
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.width(8.dp)) // Added more padding between buttons
+
+            Button(
+                onClick = { handleStartClick() },
+                shape = CircleShape,
+                modifier = Modifier,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent
+                ),
+                content = {
+                    Box(
+                        modifier = Modifier
+                            .background(Color.Transparent),
+                        contentAlignment = Alignment.Center // Align content to the center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.tiny_button), // Your image resource
+                            contentDescription = "Menu Button",
+                            modifier = Modifier
+                                .background(Color.Transparent)
+                        )
+                    }
+                }
+            )
         }
 
-        Spacer(modifier = Modifier.width(8.dp)) // Added more padding between buttons
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.text_menu),
+                modifier = Modifier,
+                contentDescription = "Menu_Text"
+            )
 
-        Button(onClick = { handleStartClick() }) {
-            Text(text = "Start")
+            Spacer(modifier = Modifier.width(20.dp)) // Padding between text images
+
+            Image(
+                painter = painterResource(id = R.drawable.text_start),
+                modifier = Modifier,
+                contentDescription = "Start_Text"
+            )
         }
     }
+
 }
