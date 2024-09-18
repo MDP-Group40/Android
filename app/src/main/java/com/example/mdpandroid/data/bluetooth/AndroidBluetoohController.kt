@@ -292,11 +292,15 @@ class AndroidBluetoothController(
                     }
                 } catch (e: IOException) {
                     Log.e("Bluetooth", "IOException during socket connection: ${e.message}")
-                    socket.close()
+                    try {
+                        socket.close()
+                    } catch (closeException: IOException) {
+                        Log.e("Bluetooth", "Error closing the socket: ${closeException.message}")
+                    }
                     currentClientSocket = null
-                    emit(ConnectionResult.Error("Connection was interrupted"))
+                    emit(ConnectionResult.Error("Connection was interrupted: ${e.message}"))
                 }
-            } ?: run {
+        } ?: run {
                 Log.e("Bluetooth", "Client socket is null, failed to create socket")
                 emit(ConnectionResult.Error("Failed to create client socket"))
             }
@@ -335,8 +339,6 @@ class AndroidBluetoothController(
         }
     }
 
-
-
     override fun closeConnection() {
         currentClientSocket?.close()
         currentServerSocket?.close()
@@ -367,7 +369,6 @@ class AndroidBluetoothController(
 
         closeConnection()
     }
-
 
     private fun updatePairedDevices() {
         if(!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {

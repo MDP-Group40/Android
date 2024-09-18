@@ -86,6 +86,7 @@ open class BluetoothViewModel @Inject constructor(
     }
 
     fun connectToDevice(device: BluetoothDeviceDomain) {
+
         _state.update {
             it.copy(
                 isConnecting = true,
