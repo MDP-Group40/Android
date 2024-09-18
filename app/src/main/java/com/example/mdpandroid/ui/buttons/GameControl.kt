@@ -14,8 +14,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.material3.ButtonColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -107,22 +109,98 @@ fun LeftRightTab(navController: NavHostController){
 */
 @Composable
 fun BottomButtons(navController: NavHostController){
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+    Column(
+        modifier = Modifier,
+        horizontalAlignment = Alignment.CenterHorizontally // Center the content horizontally
     ) {
-        Button(onClick = { navController.safeNavigate("bluetooth") }) {
-            Text(text = "Menu")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                onClick = { navController.safeNavigate("bluetooth") },
+                colors = ButtonColors(
+                    contentColor = Color.Transparent,
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    disabledContentColor = Color.Transparent
+                ),
+                shape = CircleShape
+            ) {
+                //taking the png image from res/drawable
+                val painter: Painter = painterResource(id = R.drawable.tiny_button)
+
+                // Display the image
+                Image(
+                    painter = painter,
+                    contentDescription = null, // Provide content description for accessibility if needed
+                    modifier = Modifier.size(50.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(5.dp))
+
+            Button(
+                onClick = { navController.safeNavigate("start") },
+                colors = ButtonColors(
+                    contentColor = Color.Transparent,
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    disabledContentColor = Color.Transparent
+                ),
+                shape = CircleShape
+            )
+            {
+                //taking the png image from res/drawable
+                val painter: Painter = painterResource(id = R.drawable.tiny_button)
+
+                // Display the image
+                Image(
+                    painter = painter,
+                    contentDescription = null, // Provide content description for accessibility if needed
+                    modifier = Modifier.size(50.dp)
+                )
+            }
+        }
+        Row (
+            modifier = Modifier,
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Box(modifier = Modifier){
+                //taking the png image from res/drawable
+                val painter: Painter = painterResource(id = R.drawable.text_menu)
+
+                // Display the image
+                Image(
+                    painter = painter,
+                    contentDescription = null, // Provide content description for accessibility if needed
+                    modifier = Modifier
+                        .size(50.dp)
+                        .offset(x = (-20).dp)
+                )
+            }
+            Box(modifier = Modifier){
+                //taking the png image from res/drawable
+                val painter: Painter = painterResource(id = R.drawable.text_start)
+
+                // Display the image
+                Image(
+                    painter = painter,
+                    contentDescription = null, // Provide content description for accessibility if needed
+                    modifier = Modifier
+                        .size(60.dp)
+                        .offset(x = 30.dp)
+
+                )
+            }
+
         }
 
-        Spacer(modifier = Modifier.width(5.dp))
 
-        Button(onClick = { navController.safeNavigate("start") }) {
-            Text(text = "Start")
-        }
     }
+
 
 }
 
@@ -146,7 +224,7 @@ fun ABButton(viewModel: CarViewModel, activeButton: String, setActiveButton: (St
             imageResId = R.drawable.a_button
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(15.dp))
         MoveButton(
             onPress = { viewModel.onMoveBackward() },
             onRelease = { viewModel.onStopMove() },
