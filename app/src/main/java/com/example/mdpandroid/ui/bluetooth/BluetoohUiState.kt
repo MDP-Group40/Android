@@ -4,7 +4,6 @@ import com.example.mdpandroid.domain.BluetoothDevice
 import com.example.mdpandroid.domain.BluetoothDeviceDomain
 import com.example.mdpandroid.domain.BluetoothMessage
 
-
 data class BluetoothUiState(
     val scannedDevices: List<BluetoothDevice> = emptyList(),
     val pairedDevices: List<BluetoothDevice> = emptyList(),

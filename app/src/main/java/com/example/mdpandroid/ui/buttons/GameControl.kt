@@ -1,22 +1,11 @@
 package com.example.mdpandroid.ui.buttons
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,292 +13,54 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.mdpandroid.R
-import com.example.mdpandroid.ui.car.CarViewModel
-import com.example.mdpandroid.ui.safeNavigate
+import com.example.mdpandroid.ui.shared.SharedViewModel
 
 
 @Composable
-fun GameControls(viewModel: CarViewModel, navController: NavHostController, modifier: Modifier) {
+fun GameControls(
+    viewModel: ControlViewModel,
+    navController: NavHostController,
+    sharedViewModel: SharedViewModel,
+    modifier: Modifier) {
     var activeButton by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
             .background(Color(0xFF04A9FC))
             .height(380.dp)
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.SpaceAround,
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        //LeftRightTab(navController = navController)
+        LeftRightTab(navController = navController)
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = 30.dp),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Left D-Pad for turning
-            DPad(viewModel, activeButton, setActiveButton = { activeButton = it })
+            DPad(viewModel = viewModel, activeButton = activeButton, setActiveButton = { activeButton = it }, sharedViewModel = sharedViewModel)
 
-            ABButton(viewModel = viewModel, activeButton = activeButton, setActiveButton = { activeButton = it} )
+            ABButton(viewModel = viewModel, activeButton = activeButton, setActiveButton = { activeButton = it}, sharedViewModel = sharedViewModel)
         }
 
-        BottomButtons(navController = navController)
-    }
-}
-
-/*@Composable
-fun LeftRightTab(navController: NavHostController){
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Button(
-            onClick = { navController.safeNavigate("grid") },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .constrainAs(buttonA) {
-                    top.linkTo(parent.top, margin = 150.dp)
-                    start.linkTo(parent.start, margin = 10.dp)
-                }
-                .zIndex(1f),  // Ensure button is on top of other elements,
-            content = {
-                Box(
-                    modifier = Modifier
-                        .offset(x = (-15).dp, y = (-30).dp), // Ensure the Box takes the full size of the button
-                    contentAlignment = Alignment.Center // Align content to the center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.l_button), // Your image resource
-                        contentDescription = "A Button",
-                        modifier = Modifier
-
-                    )
-                }
-            }
-        )
-
-        Button(
-            onClick = { navController.safeNavigate("message") }
-        ){
-            Text(text = "R")
-        }
-    }
-}
-*/
-@Composable
-fun BottomButtons(navController: NavHostController){
-    Column(
-        modifier = Modifier,
-        horizontalAlignment = Alignment.CenterHorizontally // Center the content horizontally
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                onClick = { navController.safeNavigate("bluetooth") },
-                colors = ButtonColors(
-                    contentColor = Color.Transparent,
-                    containerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    disabledContentColor = Color.Transparent
-                ),
-                shape = CircleShape
-            ) {
-                //taking the png image from res/drawable
-                val painter: Painter = painterResource(id = R.drawable.tiny_button)
-
-                // Display the image
-                Image(
-                    painter = painter,
-                    contentDescription = null, // Provide content description for accessibility if needed
-                    modifier = Modifier.size(50.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(5.dp))
-
-            Button(
-                onClick = { navController.safeNavigate("start") },
-                colors = ButtonColors(
-                    contentColor = Color.Transparent,
-                    containerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    disabledContentColor = Color.Transparent
-                ),
-                shape = CircleShape
-            )
-            {
-                //taking the png image from res/drawable
-                val painter: Painter = painterResource(id = R.drawable.tiny_button)
-
-                // Display the image
-                Image(
-                    painter = painter,
-                    contentDescription = null, // Provide content description for accessibility if needed
-                    modifier = Modifier.size(50.dp)
-                )
-            }
-        }
-        Row (
-            modifier = Modifier,
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            Box(modifier = Modifier){
-                //taking the png image from res/drawable
-                val painter: Painter = painterResource(id = R.drawable.text_menu)
-
-                // Display the image
-                Image(
-                    painter = painter,
-                    contentDescription = null, // Provide content description for accessibility if needed
-                    modifier = Modifier
-                        .size(50.dp)
-                        .offset(x = (-20).dp)
-                )
-            }
-            Box(modifier = Modifier){
-                //taking the png image from res/drawable
-                val painter: Painter = painterResource(id = R.drawable.text_start)
-
-                // Display the image
-                Image(
-                    painter = painter,
-                    contentDescription = null, // Provide content description for accessibility if needed
-                    modifier = Modifier
-                        .size(60.dp)
-                        .offset(x = 30.dp)
-
-                )
-            }
-
-        }
-
-
-    }
-
-
-}
-
-@Composable
-fun ABButton(viewModel: CarViewModel, activeButton: String, setActiveButton: (String) -> Unit){
-    // Right A and B buttons for moving forward/backward
-
-    Column(
-        horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.Center
-    ) {
-        MoveButton(
-            onPress = { viewModel.onMoveForward() },
-            onRelease = { viewModel.onStopMove() },
-            label = "A",
-            activeButton = activeButton,
-            setActiveButton = { setActiveButton(it) },
-            modifier = Modifier
-                .size(120.dp)
-                .offset(x = 40.dp),
-            imageResId = R.drawable.a_button
-        )
-
-        Spacer(modifier = Modifier.height(15.dp))
-        MoveButton(
-            onPress = { viewModel.onMoveBackward() },
-            onRelease = { viewModel.onStopMove() },
-            label = "B",
-            activeButton = activeButton,
-            setActiveButton = { setActiveButton(it) },
-            modifier = Modifier
-                .size(120.dp)
-                .offset(x = (-40).dp),
-            imageResId = R.drawable.b_button
-        )
+        BottomButtons(navController = navController, sharedViewModel = sharedViewModel)
     }
 }
 
 
-@Composable
-fun DPad(viewModel: CarViewModel, activeButton: String, setActiveButton: (String) -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(200.dp) // Adjust size as per your layout needs
-    ) {
-        // Background image for the DPad
-        Image(
-            painter = painterResource(id = R.drawable.pad_bg),
-            contentDescription = "DPad Background",
-            modifier = Modifier
-                .fillMaxSize()
-                .scale(1.4f)
-                .offset(x = (-15).dp),
-        )
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            MoveButton(
-                onPress = { viewModel.onMoveForward() },
-                onRelease = { viewModel.onStopMove() },
-                label = "^",
-                activeButton = activeButton,
-                setActiveButton = { setActiveButton(it) },
-                modifier = Modifier
-                    .size(80.dp)
-                    .offset(x = 38.dp, y = (-28).dp),
-                imageResId = R.drawable.up,
-            )
-        }
 
-        Row {
-            MoveButton(
-                onPress = { viewModel.onMoveLeft() },
-                onRelease = { viewModel.onStopMove() },
-                label = "<",
-                activeButton = activeButton,
-                setActiveButton = { setActiveButton(it) },
-                modifier = Modifier
-                    .size(80.dp)
-                    .offset(x = (-40).dp, y = 52.dp),
-                imageResId = R.drawable.left
-            )
 
-            MoveButton(
-                onPress = { viewModel.onMoveRight() },
-                onRelease = { viewModel.onStopMove() },
-                label = ">",
-                activeButton = activeButton,
-                setActiveButton = { setActiveButton(it) },
-                modifier = Modifier
-                    .size(80.dp)
-                    .offset(x = 40.dp, y = 52.dp),
-                imageResId = R.drawable.right
-            )
-        }
 
-        MoveButton(
-            onPress = { viewModel.onMoveBackward() },
-            onRelease = { viewModel.onStopMove() },
-            label = "_",
-            activeButton = activeButton,
-            setActiveButton = { setActiveButton(it) },
-            modifier = Modifier
-                .size(80.dp)
-                .offset(x = 38.dp, y = 128.dp),
-            imageResId = R.drawable.down
-        )
-    }
-}
+
+
+
+
+
 
 
 

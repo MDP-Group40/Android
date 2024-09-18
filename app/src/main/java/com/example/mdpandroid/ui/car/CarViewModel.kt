@@ -1,27 +1,32 @@
 package com.example.mdpandroid.ui.car
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mdpandroid.data.model.Car
 import com.example.mdpandroid.data.model.Orientation
+import com.example.mdpandroid.ui.buttons.ControlViewModel
 import com.example.mdpandroid.ui.shared.SharedViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.Locale
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
+class CarViewModel(
+    private val sharedViewModel: SharedViewModel
+) : ControlViewModel() {
 
-class CarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel() {
-
+    // CarViewModel-specific properties
     private val gridSize get() = sharedViewModel.gridSize
-    private val car get() = sharedViewModel.car
+    val car get() = sharedViewModel.car
     private val obstacles get() = sharedViewModel.obstacles
     private val target get() = sharedViewModel.target
 
-    private val movementStepMajor = 0.5f   // Major step (1 grid unit)
-    private val movementStepMinor = 0.25f // Minor step (0.5 grid unit)
+    private val movementStepMajor = 0.5f
 
     // Flags for movement
     private var isMovingForward = false
@@ -32,41 +37,52 @@ class CarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel() {
     // Job for managing the loop
     private var movementJob: Job? = null
 
-    private fun resetAllMovementFlags() {
-        isMovingForward = false
-        isMovingBackward = false
-        isTurningLeft = false
-        isTurningRight = false
-    }
 
-    fun onMoveForward() {
+    // Abstract methods from ControlViewModel, now implemented in CarViewModel
+    override fun handleButtonUp() {
         resetAllMovementFlags() // Ensure only forward movement is active
         isMovingForward = true
         startMovementLoop()
     }
 
-    fun onMoveBackward() {
+    override fun handleButtonDown() {
         resetAllMovementFlags() // Ensure only backward movement is active
         isMovingBackward = true
         startMovementLoop()
     }
 
-    fun onMoveLeft() {
+    override fun handleButtonLeft() {
         resetAllMovementFlags() // Ensure only left turning is active
         isTurningLeft = true
         startMovementLoop()
     }
 
-    fun onMoveRight() {
+    override fun handleButtonRight() {
         resetAllMovementFlags() // Ensure only right turning is active
         isTurningRight = true
         startMovementLoop()
     }
 
-    // Reset all flags when stopping
-    fun onStopMove() {
+    override fun handleButtonA() {
+        // If button A is used for moving forward, this can call handleButtonUp
+        handleButtonUp()
+    }
+
+    override fun handleButtonB() {
+        // If button B is used for moving backward, this can call handleButtonDown
+        handleButtonDown()
+    }
+
+    override fun handleStopMovement() {
         resetAllMovementFlags()
         stopMovementLoop()
+    }
+
+    private fun resetAllMovementFlags() {
+        isMovingForward = false
+        isMovingBackward = false
+        isTurningLeft = false
+        isTurningRight = false
     }
 
     private fun startMovementLoop(angleChange: Float = 22.5f) {
@@ -108,7 +124,6 @@ class CarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel() {
 
                         // Check if any movement is still happening
                         if (!isMovingForward && !isMovingBackward && !isTurningLeft && !isTurningRight) {
-                            // No actions are ongoing, stop the movement loop
                             stopMovementLoop()
                         }
                     }
@@ -125,172 +140,45 @@ class CarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel() {
         movementJob = null
     }
 
-    private suspend fun moveForward(carPosition: Car): Car?{
+    private suspend fun moveForward(carPosition: Car): Car {
         return withContext(Dispatchers.Default) {
-            val newPosition = when (carPosition.orientation) {
-                Orientation.NORTH -> carPosition.copy(positionY = carPosition.positionY - movementStepMajor)
-                Orientation.NORTHNORTHEAST -> carPosition.copy(
-                    positionY = carPosition.positionY - movementStepMajor,
-                    positionX = carPosition.positionX + movementStepMinor
-                )
-                Orientation.NORTHEAST -> carPosition.copy(
-                    positionY = carPosition.positionY - movementStepMajor,
-                    positionX = carPosition.positionX + movementStepMajor
-                )
-                Orientation.NORTHEASTEAST -> carPosition.copy(
-                    positionY = carPosition.positionY - movementStepMinor,
-                    positionX = carPosition.positionX + movementStepMajor
-                )
-                Orientation.EAST -> carPosition.copy(positionX = carPosition.positionX + movementStepMajor)
-                Orientation.SOUTHEASTEAST -> carPosition.copy(
-                    positionY = carPosition.positionY + movementStepMinor,
-                    positionX = carPosition.positionX + movementStepMajor
-                )
-                Orientation.SOUTHEAST -> carPosition.copy(
-                    positionY = carPosition.positionY + movementStepMajor,
-                    positionX = carPosition.positionX + movementStepMajor
-                )
-                Orientation.SOUTHSOUTHEAST -> carPosition.copy(
-                    positionY = carPosition.positionY + movementStepMajor,
-                    positionX = carPosition.positionX + movementStepMinor
-                )
-                Orientation.SOUTH -> carPosition.copy(positionY = carPosition.positionY + movementStepMajor)
-                Orientation.SOUTHSOUTHWEST -> carPosition.copy(
-                    positionY = carPosition.positionY + movementStepMajor,
-                    positionX = carPosition.positionX - movementStepMinor
-                )
-                Orientation.SOUTHWEST -> carPosition.copy(
-                    positionY = carPosition.positionY + movementStepMajor,
-                    positionX = carPosition.positionX - movementStepMajor
-                )
-                Orientation.SOUTHWESTWEST -> carPosition.copy(
-                    positionY = carPosition.positionY + movementStepMinor,
-                    positionX = carPosition.positionX - movementStepMajor
-                )
-                Orientation.WEST -> carPosition.copy(positionX = carPosition.positionX - movementStepMajor)
-                Orientation.NORTHWESTWEST -> carPosition.copy(
-                    positionY = carPosition.positionY - movementStepMinor,
-                    positionX = carPosition.positionX - movementStepMajor
-                )
-                Orientation.NORTHWEST -> carPosition.copy(
-                    positionY = carPosition.positionY - movementStepMajor,
-                    positionX = carPosition.positionX - movementStepMajor
-                )
-                Orientation.NORTHNORTHWEST -> carPosition.copy(
-                    positionY = carPosition.positionY - movementStepMajor,
-                    positionX = carPosition.positionX - movementStepMinor
-                )
+            val newPosition = getNextGridPosition(carPosition, forward = true)
+            if (isGridCellOccupied(newPosition)) {
+                // If the grid cell is occupied or out of bounds, return the current position, preventing movement
+                return@withContext carPosition
             }
-
-            // Return newPosition after obstacle and target collision checks
-            if (!isObstacleInPath(newPosition) && !isTargetInPath(newPosition)) {
-                val (halfWidth, halfHeight) = getHalfDimensions(carPosition.orientation, carPosition.width, carPosition.height)
-                if (newPosition.positionX - halfWidth >= 0f && newPosition.positionX + halfWidth <= gridSize &&
-                    newPosition.positionY - halfHeight >= 0f && newPosition.positionY + halfHeight <= gridSize) {
-                    newPosition
-                } else null
-            } else null
+            return@withContext newPosition
         }
     }
 
-    private suspend fun moveBackward(carPosition: Car): Car? {
+    private suspend fun moveBackward(carPosition: Car): Car {
         return withContext(Dispatchers.Default) {
-            val newPosition = when (carPosition.orientation) {
-                Orientation.NORTH -> carPosition.copy(positionY = carPosition.positionY + movementStepMajor)
-                Orientation.NORTHNORTHEAST -> carPosition.copy(
-                    positionY = carPosition.positionY + movementStepMajor,
-                    positionX = carPosition.positionX - movementStepMinor
-                )
-                Orientation.NORTHEAST -> carPosition.copy(
-                    positionY = carPosition.positionY + movementStepMajor,
-                    positionX = carPosition.positionX - movementStepMajor
-                )
-                Orientation.NORTHEASTEAST -> carPosition.copy(
-                    positionY = carPosition.positionY + movementStepMinor,
-                    positionX = carPosition.positionX - movementStepMajor
-                )
-                Orientation.EAST -> carPosition.copy(positionX = carPosition.positionX - movementStepMajor)
-                Orientation.SOUTHEASTEAST -> carPosition.copy(
-                    positionY = carPosition.positionY - movementStepMinor,
-                    positionX = carPosition.positionX - movementStepMajor
-                )
-                Orientation.SOUTHEAST -> carPosition.copy(
-                    positionY = carPosition.positionY - movementStepMajor,
-                    positionX = carPosition.positionX - movementStepMajor
-                )
-                Orientation.SOUTHSOUTHEAST -> carPosition.copy(
-                    positionY = carPosition.positionY - movementStepMajor,
-                    positionX = carPosition.positionX - movementStepMinor
-                )
-                Orientation.SOUTH -> carPosition.copy(positionY = carPosition.positionY - movementStepMajor)
-                Orientation.SOUTHSOUTHWEST -> carPosition.copy(
-                    positionY = carPosition.positionY - movementStepMajor,
-                    positionX = carPosition.positionX + movementStepMinor
-                )
-                Orientation.SOUTHWEST -> carPosition.copy(
-                    positionY = carPosition.positionY - movementStepMajor,
-                    positionX = carPosition.positionX + movementStepMajor
-                )
-                Orientation.SOUTHWESTWEST -> carPosition.copy(
-                    positionY = carPosition.positionY - movementStepMinor,
-                    positionX = carPosition.positionX + movementStepMajor
-                )
-                Orientation.WEST -> carPosition.copy(positionX = carPosition.positionX + movementStepMajor)
-                Orientation.NORTHWESTWEST -> carPosition.copy(
-                    positionY = carPosition.positionY + movementStepMinor,
-                    positionX = carPosition.positionX + movementStepMajor
-                )
-                Orientation.NORTHWEST -> carPosition.copy(
-                    positionY = carPosition.positionY + movementStepMajor,
-                    positionX = carPosition.positionX + movementStepMajor
-                )
-                Orientation.NORTHNORTHWEST -> carPosition.copy(
-                    positionY = carPosition.positionY + movementStepMajor,
-                    positionX = carPosition.positionX + movementStepMinor
-                )
+            val newPosition = getNextGridPosition(carPosition, forward = false)
+            if (isGridCellOccupied(newPosition)) {
+                // If the grid cell is occupied or out of bounds, return the current position, preventing movement
+                return@withContext carPosition
             }
-
-            // Return newPosition after obstacle and target collision checks
-            if (!isObstacleInPath(newPosition) && !isTargetInPath(newPosition)) {
-                val (halfWidth, halfHeight) = getHalfDimensions(carPosition.orientation, carPosition.width, carPosition.height)
-                if (newPosition.positionX - halfWidth >= 0f && newPosition.positionX + halfWidth <= gridSize &&
-                    newPosition.positionY - halfHeight >= 0f && newPosition.positionY + halfHeight <= gridSize) {
-                    newPosition
-                } else null
-            } else null
+            return@withContext newPosition
         }
     }
 
-    private fun isObstacleInPath(newPosition: Car): Boolean {
-        val halfWidth = newPosition.width / 2
-        val halfHeight = newPosition.height / 2
-        val newCarPositionXRange = newPosition.positionX - halfWidth..newPosition.positionX + halfWidth
-        val newCarPositionYRange = newPosition.positionY - halfHeight..newPosition.positionY + halfHeight
+    // Calculate the next grid position based on the car's current orientation and movement direction
+    private fun getNextGridPosition(car: Car, forward: Boolean): Car {
+        val direction = if (forward) 1f else -1f
+        val angleInRadians = car.rotationAngle * (PI / 180).toFloat()
 
-        return obstacles.any { obstacle ->
-            val obstacleXRange = obstacle.positionX..obstacle.positionX + 1
-            val obstacleYRange = obstacle.positionY..obstacle.positionY + 1
+        // Correcting the deltaX and deltaY movement
+        val deltaX = direction * movementStepMajor * sin(angleInRadians)  // Y-axis influences X movement
+        val deltaY = direction * movementStepMajor * cos(angleInRadians)  // X-axis influences Y movement
 
-            newCarPositionXRange.intersects(obstacleXRange) && newCarPositionYRange.intersects(obstacleYRange)
-        }
-    }
+        // Rounding the new position to 2 decimal places using Locale.US
+        val roundedX = String.format(Locale.US, "%.1f", car.positionX + deltaX).toFloat()
+        val roundedY = String.format(Locale.US, "%.1f", car.positionY - deltaY).toFloat()
 
-    private fun isTargetInPath(newPosition: Car): Boolean {
-        val halfWidth = newPosition.width / 2
-        val halfHeight = newPosition.height / 2
-        val newCarPositionXRange = newPosition.positionX - halfWidth..newPosition.positionX + halfWidth
-        val newCarPositionYRange = newPosition.positionY - halfHeight..newPosition.positionY + halfHeight
-
-        return target.any { target ->
-            val obstacleXRange = target.positionX..target.positionX + 1
-            val obstacleYRange = target.positionY..target.positionY + 1
-
-            newCarPositionXRange.intersects(obstacleXRange) && newCarPositionYRange.intersects(obstacleYRange)
-        }
-    }
-
-    private fun ClosedFloatingPointRange<Float>.intersects(other: ClosedFloatingPointRange<Float>): Boolean {
-        return this.start < other.endInclusive && this.endInclusive > other.start
+        return car.copy(
+            positionX = roundedX,
+            positionY = roundedY
+        )
     }
 
     private fun rotateCar(carPosition: Car, angleChange: Float): Car {
@@ -322,12 +210,107 @@ class CarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel() {
         return carPosition.copy(rotationAngle = newAngle, orientation = newOrientation)
     }
 
+    private fun isGridCellOccupied(newPosition: Car): Boolean {
+        val sideCenters = getSideCenters(newPosition)
+        var isCollisionDetected = false
 
-    private fun getHalfDimensions(orientation: Orientation, width: Float, height: Float): Pair<Float, Float> {
-        return if (orientation in listOf(Orientation.NORTH, Orientation.SOUTH, Orientation.NORTHNORTHEAST, Orientation.SOUTHWEST, Orientation.NORTHWEST, Orientation.SOUTHEAST, Orientation.SOUTHSOUTHEAST, Orientation.NORTHNORTHWEST)) {
-            width / 2 to height / 2
-        } else {
-            height / 2 to width / 2
+        Log.d("MovementLoop", "Checking grid cell occupancy for car position: (${newPosition.positionX}, ${newPosition.positionY}), Rotation: ${newPosition.rotationAngle}")
+        Log.d("MovementLoop", "Side centers: $sideCenters")
+
+        for ((centerX, centerY) in sideCenters) {
+            val gridX = if (centerX % 1 >= 0.5) (centerX + 0.5).toInt() else centerX.toInt()
+            val gridY = if (centerY % 1 >= 0.5) (centerY + 0.5).toInt() else centerY.toInt()
+
+            Log.d("MovementLoop", "Checking side center at ($centerX, $centerY) -> Grid cell ($gridX, $gridY)")
+
+            // Check if out of bounds
+            if (gridX < 0 || gridX >= gridSize || gridY < 0 || gridY >= gridSize) {
+                Log.d("MovementLoop", "Side center ($gridX, $gridY) is out of bounds!")
+                isCollisionDetected = true
+                break
+            }
+
+            // Check obstacle and target collisions
+            val isObstacle = obstacles.any { obstacle ->
+                val obstacleGridX = (obstacle.positionX).toInt()
+                val obstacleGridY = (obstacle.positionY).toInt()
+                val hit = gridX == obstacleGridX && gridY == obstacleGridY
+                if (hit) {
+                    Log.d("MovementLoop", "Side center ($gridX, $gridY) collides with obstacle at ($obstacleGridX, $obstacleGridY)")
+                }
+                hit
+            }
+
+            val isTarget = target.any { target ->
+                val targetGridX = (target.positionX).toInt()
+                val targetGridY = (target.positionY).toInt()
+                val hit = gridX == targetGridX && gridY == targetGridY
+                if (hit) {
+                    Log.d("MovementLoop", "Side center ($gridX, $gridY) collides with target at ($targetGridX, $targetGridY)")
+                }
+                hit
+            }
+
+            if (isObstacle || isTarget) {
+                isCollisionDetected = true
+                break
+            }
+        }
+
+        Log.d("MovementLoop", "Final result: Collision detected: $isCollisionDetected")
+        return isCollisionDetected
+    }
+
+
+    private fun getDimensionsForOrientation(orientation: Orientation): Pair<Float, Float> {
+        return when (orientation) {
+            Orientation.NORTH, Orientation.SOUTH,Orientation.SOUTHSOUTHWEST,
+            Orientation.SOUTHSOUTHEAST, Orientation.NORTHNORTHEAST,Orientation.NORTHNORTHWEST -> Pair(2f, 3f)  // width, height
+            Orientation.EAST, Orientation.WEST,  Orientation.SOUTHEASTEAST,
+            Orientation.SOUTHWESTWEST, Orientation.NORTHEASTEAST, Orientation.NORTHWESTWEST -> Pair(3f, 2f)  // width, height
+            Orientation.NORTHEAST, Orientation.SOUTHEAST,
+            Orientation.SOUTHWEST, Orientation.NORTHWEST -> Pair(1.5f, 2.5f)  // width, height
+
         }
     }
+
+    private fun getSideCenters(car: Car): List<Pair<Float, Float>> {
+        val (width, height) = getDimensionsForOrientation(car.orientation)
+
+        val halfWidth = width / 2
+        val halfHeight = height / 2
+
+        val centerX = car.positionX
+        val centerY = car.positionY
+
+        // The four sides' centers (top, bottom, left, right) based on orientation
+        return when (car.orientation) {
+            // For orientations like NORTH and SOUTH, the standard top, bottom, left, and right apply
+            Orientation.NORTH, Orientation.SOUTH, Orientation.SOUTHSOUTHEAST, Orientation.SOUTHSOUTHWEST,
+            Orientation.NORTHNORTHWEST, Orientation.NORTHNORTHEAST -> listOf(
+                Pair(centerX, centerY - halfHeight), // Top center
+                Pair(centerX, centerY + halfHeight), // Bottom center
+                Pair(centerX - halfWidth, centerY),  // Left center
+                Pair(centerX + halfWidth, centerY)   // Right center
+            )
+
+            // For orientations like EAST and WEST, the "top" and "bottom" are on the X-axis (left and right)
+            Orientation.EAST, Orientation.WEST, Orientation.SOUTHEASTEAST, Orientation.SOUTHWESTWEST,
+            Orientation.NORTHEASTEAST, Orientation.NORTHWESTWEST -> listOf(
+                Pair(centerX - halfHeight, centerY), // Left center (on the X-axis)
+                Pair(centerX + halfHeight, centerY), // Right center (on the X-axis)
+                Pair(centerX, centerY - halfWidth),  // Top center (on the Y-axis)
+                Pair(centerX, centerY + halfWidth)   // Bottom center (on the Y-axis)
+            )
+
+            // For diagonal orientations like NORTHEAST, SOUTHEAST, NORTHWEST, and SOUTHWEST
+            Orientation.NORTHEAST, Orientation.SOUTHEAST, Orientation.SOUTHWEST, Orientation.NORTHWEST -> listOf(
+                Pair(centerX, centerY - 1.25f),  // Top center (based on height 2.5)
+                Pair(centerX, centerY + 1.25f),  // Bottom center
+                Pair(centerX - 0.75f, centerY),  // Left center (based on width 1.5)
+                Pair(centerX + 0.75f, centerY)   // Right center
+            )
+        }
+    }
+
 }

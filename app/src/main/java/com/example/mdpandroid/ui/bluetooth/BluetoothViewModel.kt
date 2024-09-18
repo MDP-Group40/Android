@@ -1,17 +1,27 @@
 package com.example.mdpandroid.ui.bluetooth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mdpandroid.domain.BluetoothController
 import com.example.mdpandroid.domain.BluetoothDevice
 import com.example.mdpandroid.domain.BluetoothDeviceDomain
-import com.example.mdpandroid.domain.ConnectionResult
 import com.example.mdpandroid.domain.BluetoothMessage
+import com.example.mdpandroid.domain.ConnectionResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
@@ -168,10 +178,20 @@ open class BluetoothViewModel @Inject constructor(
 
     // Function to send a BluetoothMessage (Text, Info, or Obstacle)
     fun sendMessage(bluetoothMessage: BluetoothMessage) {
+        // Log the message being sent
+        Log.d("BluetoothViewModel", "Sending message: $bluetoothMessage")
+
         viewModelScope.launch(Dispatchers.IO) {
             val sentMessage = bluetoothController.trySendMessage(bluetoothMessage)
             if (sentMessage != null) {
+                // Log the sent message after it has been successfully sent
+                Log.d("BluetoothViewModel", "Message sent successfully: $sentMessage")
+
+                // Update the state with the sent message
                 _state.update { it.copy(messages = it.messages + sentMessage) }
+            } else {
+                // Log failure if the message could not be sent
+                Log.e("BluetoothViewModel", "Failed to send message: $bluetoothMessage")
             }
         }
     }
@@ -220,12 +240,13 @@ open class BluetoothViewModel @Inject constructor(
     }
 
     // Clear the current message
-    fun clearMessage() {
+    private fun clearMessage() {
         _state.update { it.copy(message = null) }
     }
 
     override fun onCleared() {
         super.onCleared()
+        clearMessage()
         bluetoothController.closeConnection()  // Call the close function here
     }
 }

@@ -16,17 +16,15 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +42,6 @@ import com.example.mdpandroid.ui.shared.SharedViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import androidx.compose.material3.TextFieldDefaults
 
 
 @Composable
@@ -65,6 +62,8 @@ fun Sidebar(
     ImageRecognitionButton(viewModel = sidebarViewModel, sharedViewModel)
     Spacer(modifier = Modifier.height(7.dp))
     FastestPathButton(viewModel = sidebarViewModel, sharedViewModel)
+    Spacer(modifier = Modifier.height(15.dp))
+    DrivingModeButton(viewModel = sidebarViewModel, sharedViewModel)
 }
 
 @Composable
@@ -202,6 +201,19 @@ fun FastestPathButton(viewModel: SidebarViewModel, sharedViewModel: SharedViewMo
 }
 
 @Composable
+fun DrivingModeButton(viewModel: SidebarViewModel, sharedViewModel: SharedViewModel) {
+    val backgroundColor = if (sharedViewModel.drivingMode.value) Color.DarkGray else Color.Black
+
+    SidebarButton(
+        text = "DRIVING\nMODE",
+        backgroundColor = backgroundColor,
+        handleSingleClick = {
+            viewModel.toggleDrivingMode()
+        }
+    )
+}
+
+@Composable
 fun ResetButton(sharedViewModel: SharedViewModel) {
     SidebarButton(
         text = "RESET\nSETTINGS",
@@ -221,7 +233,6 @@ fun ResetButton(sharedViewModel: SharedViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CoordinateEntryDialog(viewModel: SidebarViewModel, isObstacle: Boolean) {
     var x by remember { mutableStateOf("") }

@@ -18,18 +18,29 @@ import com.example.mdpandroid.domain.BluetoothMessage
 import com.example.mdpandroid.domain.ConnectionResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
-import java.util.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import java.util.UUID
 
 @SuppressLint("MissingPermission")
 class AndroidBluetoothController(
     private val context: Context
 ): BluetoothController {
+
 
     private val bluetoothManager by lazy {
         context.getSystemService(BluetoothManager::class.java)
@@ -327,6 +338,7 @@ class AndroidBluetoothController(
             val isSent = dataTransferService?.sendBluetoothMessage(bluetoothMessage) ?: false
 
             if (isSent) {
+                Log.e("BluetoothController", "Send Bluetooth message.\n $bluetoothMessage")
                 return@withContext bluetoothMessage // Return the sent message if successful
             } else {
                 Log.e("BluetoothController", "Failed to send Bluetooth message.")

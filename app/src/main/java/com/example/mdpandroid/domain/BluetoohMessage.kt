@@ -1,8 +1,11 @@
 package com.example.mdpandroid.domain
 
+import com.example.mdpandroid.data.model.Car
+import com.example.mdpandroid.data.model.Modes
 import com.example.mdpandroid.data.model.Obstacle
-import kotlinx.serialization.Serializable
+import com.example.mdpandroid.data.model.Target
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 // Define a sealed class for polymorphic serialization
 @Serializable
@@ -36,14 +39,30 @@ sealed class BluetoothMessage {
     }
 
     @Serializable
-    @SerialName("obstacles")
-    data class ObstacleMessage(
+    @SerialName("start")
+    data class StartMessage(
+        val car: Car,
         val obstacles: List<Obstacle>,
+        val target: List<Target>,
+        val mode: Modes,
         override val senderName: String,
         override val isFromLocalUser: Boolean
     ) : BluetoothMessage() {
         override fun toString(): String {
-            return "obstacles=${obstacles.size}"
+            return "Car = (${car.positionX}, ${car.positionY}) Obstacle List=${obstacles.size} Target List = ${target.size}, mode = {$mode}"
+        }
+    }
+
+    @Serializable
+    @SerialName("movement")
+    data class MovementMessage(
+        val car: Car,
+        val direction: String,
+        override val senderName: String,
+        override val isFromLocalUser: Boolean
+    ) : BluetoothMessage() {
+        override fun toString(): String {
+            return "Car = (${car.positionX}, ${car.positionY}), Direction = $direction"
         }
     }
 }

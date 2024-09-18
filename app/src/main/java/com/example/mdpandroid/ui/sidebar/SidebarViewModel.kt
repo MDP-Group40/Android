@@ -38,6 +38,10 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
         sharedViewModel.mode.value = if (sharedViewModel.mode.value == newMode) Modes.IDLE else newMode
     }
 
+    fun toggleDrivingMode() {
+        sharedViewModel.drivingMode.value = !sharedViewModel.drivingMode.value
+    }
+
     fun isObstaclePosition(x: Float, y: Float): Boolean {
         return obstacles.any { it.positionX == x && it.positionY == y }
     }

@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.mdpandroid.ui.shared.SharedViewModel
 
 class CarViewModelFactory(
-    private val sharedViewModel: SharedViewModel
+    private val sharedViewModel: SharedViewModel,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

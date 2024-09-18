@@ -1,6 +1,7 @@
 package com.example.mdpandroid.ui
 
 import android.Manifest
+import android.app.Activity.RESULT_OK
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Intent
@@ -9,20 +10,25 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.mdpandroid.ui.theme.MDPAndroidTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -52,7 +58,12 @@ fun MainActivityContent(navController: NavHostController) {
     // Bluetooth enable launcher
     val enableBluetoothLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
-    ) { /* Handle result if needed */ }
+    ) { result ->
+        // You can handle the result of enabling Bluetooth here if necessary
+        if (result.resultCode != RESULT_OK) {
+            Toast.makeText(context, "Bluetooth is required for this app", Toast.LENGTH_LONG).show()
+        }
+    }
 
     // Permission launcher
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -66,8 +77,11 @@ fun MainActivityContent(navController: NavHostController) {
             perms[Manifest.permission.ACCESS_FINE_LOCATION] == true
         }
 
+        // If permissions are granted, prompt to enable Bluetooth
         if (canEnableBluetooth && !isBluetoothEnabled) {
             enableBluetoothLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+        } else if (!canEnableBluetooth) {
+            Toast.makeText(context, "Bluetooth permissions are required", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -85,7 +99,7 @@ fun MainActivityContent(navController: NavHostController) {
             permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
         }
 
-        // Check Bluetooth status and enable it
+        // Check Bluetooth status after permissions are granted
         withContext(Dispatchers.IO) {
             isBluetoothEnabled = bluetoothAdapter.isEnabled
             if (!isBluetoothEnabled) {
@@ -94,6 +108,7 @@ fun MainActivityContent(navController: NavHostController) {
         }
     }
 
+    // Render the main UI of the app
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
