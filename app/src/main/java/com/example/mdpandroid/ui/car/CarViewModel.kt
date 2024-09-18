@@ -268,7 +268,7 @@ class CarViewModel(
             Orientation.SOUTHWESTWEST, Orientation.NORTHEASTEAST, Orientation.NORTHWESTWEST -> Pair(3f, 2f)  // width, height
             Orientation.NORTHEAST, Orientation.SOUTHEAST,
             Orientation.SOUTHWEST, Orientation.NORTHWEST -> Pair(1.5f, 2.5f)  // width, height
-            else -> Pair(2f, 3f)  // Default, similar to NORTH-SOUTH
+
         }
     }
 
