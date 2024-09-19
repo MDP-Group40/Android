@@ -26,6 +26,7 @@ import com.example.mdpandroid.ui.buttons.GameControls
 import com.example.mdpandroid.ui.car.Car
 import com.example.mdpandroid.ui.car.CarViewModel
 import com.example.mdpandroid.ui.car.CarViewModelFactory
+import com.example.mdpandroid.ui.footer.InformationDisplay
 import com.example.mdpandroid.ui.grid.GridMap
 import com.example.mdpandroid.ui.header.StatusDisplay
 import com.example.mdpandroid.ui.shared.SharedViewModel
@@ -88,6 +89,7 @@ fun IdleScreen(
                     )
                 }
             }
+            InformationDisplay(viewModel = sharedViewModel)
             // Control buttons
             GameControls(
                 carViewModel,
