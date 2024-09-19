@@ -17,12 +17,10 @@ import com.example.mdpandroid.ui.shared.SharedViewModel
 @Composable
 fun InformationDisplay(
     viewModel: SharedViewModel,
-    cellSize: Int = 50, // Default cell size
-    showDebugInfo: Boolean = true, // Toggle to show debugging information
 ){
     val carPosition by viewModel.car
     val obstacles = viewModel.obstacles
-    val targets = viewModel.target
+
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -70,27 +68,11 @@ fun InformationDisplay(
                     val reversedIndex = obstacles.size - 1 - index
                     val obstacle = obstacles[reversedIndex]
                     val num = reversedIndex + 1
-                    val facing = obstacle.facing?.value ?: "UNKNOWN"  // Dereference MutableState for Facing
+                    val facing = obstacle.facing ?: "UNKNOWN"  // Dereference MutableState for Facing
 
                     DisplayStyle(text = "  $num:(X: ${obstacle.x}, Y: ${obstacle.y}) - $facing", )
                 }
             }
         }
-
-
-        // }
-
-        /* item {
-                Text(text = "Grid Information: Number of Obstacles: ${obstacles.size}")
-                Spacer(modifier = Modifier.height(8.dp)) // Add some space between items
-                Text(text = "Obstacles:")
-            }
-
-            items(obstacles.size) { index ->
-                val obstacle = obstacles[index]
-                Text(text = "  $index: Position (X: ${obstacle.x}, Y: ${obstacle.y}), Facing: ${obstacle.facing}")
-            }*/
-
-
     }
 }

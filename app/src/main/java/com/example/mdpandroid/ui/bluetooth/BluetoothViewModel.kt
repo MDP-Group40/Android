@@ -97,6 +97,8 @@ open class BluetoothViewModel @Inject constructor(
 
     fun connectToDevice(device: BluetoothDeviceDomain) {
 
+        Log.d("BluetoothViewModel", "Starting connection to device: ${device.address}")
+
         _state.update {
             it.copy(
                 isConnecting = true,
@@ -113,6 +115,8 @@ open class BluetoothViewModel @Inject constructor(
                         .onEach { result ->
                             when (result) {
                                 is ConnectionResult.ConnectionEstablished -> {
+                                    Log.d("BluetoothViewModel", "Connection established with device: ${device.address}")
+
                                     _state.update {
                                         it.copy(
                                             isConnecting = false,
@@ -128,6 +132,8 @@ open class BluetoothViewModel @Inject constructor(
                                 }
 
                                 is ConnectionResult.Error -> {
+                                    Log.e("BluetoothViewModel", "Connection error with device: ${device.address}, message: ${result.message}")
+
                                     _state.update {
                                         it.copy(
                                             isConnecting = false,
@@ -141,10 +147,13 @@ open class BluetoothViewModel @Inject constructor(
                                 }
 
                                 is ConnectionResult.TransferSucceeded -> {
+                                    Log.d("BluetoothViewModel", "Message transfer succeeded: ${result.message}")
+
                                     _state.update { currentState ->
-                                        currentState.copy(
-                                            messages = currentState.messages + result.message
-                                        )
+                                        val updatedMessages = currentState.messages + result.message // Accumulate received messages
+                                        Log.d("BluetoothViewModel", "Updated message list (after receiving): $updatedMessages")
+
+                                        currentState.copy(messages = updatedMessages) // Properly update state with accumulated messages
                                     }
                                 }
                             }
@@ -152,6 +161,8 @@ open class BluetoothViewModel @Inject constructor(
                         .launchIn(viewModelScope)
                 }
             } catch (e: TimeoutCancellationException) {
+                Log.e("BluetoothViewModel", "Connection timed out for device: ${device.address}")
+
                 _state.update {
                     it.copy(
                         isConnecting = false,
@@ -239,7 +250,14 @@ open class BluetoothViewModel @Inject constructor(
                 Log.d("BluetoothViewModel", "Message sent successfully: $sentMessage")
 
                 // Update the state with the sent message
-                _state.update { it.copy(messages = it.messages + sentMessage) }
+                _state.update { currentState ->
+                    val updatedMessages = currentState.messages + sentMessage  // Accumulate messages properly
+                    Log.d("BluetoothViewModel", "Updated message list (after sending): $updatedMessages")
+
+                    currentState.copy(messages = updatedMessages)  // Properly update state with accumulated messages
+                }
+
+                Log.d("BluetoothViewModel", "Message Sent: $sentMessage")
             } else {
                 // Log failure if the message could not be sent
                 Log.e("BluetoothViewModel", "Failed to send message: $bluetoothMessage")
@@ -267,7 +285,7 @@ open class BluetoothViewModel @Inject constructor(
                         )
                     }
                     // Log the updated messages after a new message is received
-                    Log.d("BluetoothViewModel", "Message received: ${result.message}")
+                    Log.d("BluetoothViewModel", "Message sent: ${result.message}")
                     Log.d("BluetoothViewModel", "Current messages: ${_state.value.messages}")
                 }
                 is ConnectionResult.Error -> {

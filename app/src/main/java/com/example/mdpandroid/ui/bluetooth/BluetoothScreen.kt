@@ -1,5 +1,6 @@
 package com.example.mdpandroid.ui.bluetooth
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +29,7 @@ import com.example.mdpandroid.ui.shared.SharedViewModel
 @Composable
 fun ConnectingTab(
     navController: NavHostController,
-    viewModel: BluetoothViewModel = hiltViewModel(),
+    viewModel: BluetoothViewModel,
     sharedViewModel: SharedViewModel,
     carViewModel: CarViewModel = viewModel(
         factory = CarViewModelFactory(sharedViewModel)
@@ -79,15 +80,21 @@ fun ConnectingTab(
 }
 
 @Composable
-fun MessagesTab(navController: NavHostController, viewModel: BluetoothViewModel = hiltViewModel()) {
-    val state by viewModel.state.collectAsState()
+fun MessagesTab(navController: NavHostController, viewModel: BluetoothViewModel) {
+    val state by viewModel.state.collectAsState() // Ensure the state is collected
+
+    // Log the content of the messages whenever the state changes
+    Log.d("BluetoothUiState", "Messages count: ${state.messages.size}")
+    state.messages.forEach { message ->
+        Log.d("BluetoothUiState", "Message from ${message.senderName}: ${message.toString()}")
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize()
     ) {
         // Always show ChatScreen, and pass connection status
         ChatScreen(
-            state = state,
+            state = state, // Pass the state to the ChatScreen
             onDisconnect = {
                 navController.navigate("grid") // Navigate back to connect screen on disconnect
             },
@@ -99,6 +106,7 @@ fun MessagesTab(navController: NavHostController, viewModel: BluetoothViewModel 
         )
     }
 }
+
 
 
 

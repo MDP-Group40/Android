@@ -76,15 +76,13 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
             kotlin.math.abs(dy) > kotlin.math.abs(dx) -> { // Greater vertical movement
                 if (dy > 0) Facing.SOUTH else Facing.NORTH
             }
-            else -> obstacle.facing.value // Keep the existing facing if no significant movement
+            else -> obstacle.facing // Keep the existing facing if no significant movement
         }
 
-        obstacle.facing.value = newFacing // Update the state
+        obstacle.facing = newFacing // Update the state
         stopEditingObstacleFacing()
         Log.d("SidebarViewModel", "Updated obstacle facing at ($x, $y) to $newFacing")
     }
-
-
 
     fun isObstaclePosition(x: Float, y: Float): Boolean {
         return obstacles.any { it.x == x && it.y == y }

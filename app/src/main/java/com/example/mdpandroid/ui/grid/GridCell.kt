@@ -6,7 +6,6 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -25,9 +24,10 @@ fun GridCell(
     onLongPress: () -> Unit,
     onDrag: (Float, Float) -> Unit,
     numberOnObstacle: Int?,
-    facing: MutableState<Facing?>?,
+    facing: Facing?,
     targetID: Int? = null,
-    isEditing: Boolean // Pass the editing state to control enlargement
+    isEditing: Boolean,
+    onFacingChange: (Facing?) -> Unit // Callback to propagate facing changes
 ) {
     val painter = painterResource(id = R.drawable.gridcell)
 
@@ -58,12 +58,14 @@ fun GridCell(
                 cellSize = cellSize,
                 targetID = targetID,
                 numberOnObstacle = numberOnObstacle,
-                facing = facing,
-                isEditing = isEditing // Pass the editing state to the Obstacle composable
+                initialFacing = facing, // Pass the initial facing direction
+                isEditing = isEditing,
+                onFacingChange = onFacingChange // Handle facing changes
             )
         } else if (isTarget) {
             Target(cellSize = cellSize)
         }
     }
 }
+
 

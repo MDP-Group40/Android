@@ -40,7 +40,7 @@ fun RunningScreen(
     sharedViewModel: SharedViewModel,
     sidebarViewModel: SidebarViewModel = viewModel(factory = SidebarViewModelFactory(sharedViewModel)),
     navController: NavHostController,
-    viewModel: BluetoothViewModel = hiltViewModel()
+    viewModel: BluetoothViewModel
 ) {
     val gridSize = 20
     val cellSize = 29
@@ -48,8 +48,7 @@ fun RunningScreen(
 
     val state by viewModel.state.collectAsState()
 
-    if (sharedViewModel.mode.value == Modes.IMAGERECOGNITION) header = "IMAGE RECOGNITION"
-    else header = "FASTEST PATH"
+    header = if (sharedViewModel.mode.value == Modes.IMAGERECOGNITION) "IMAGE RECOGNITION" else "FASTEST PATH"
 
 
     // Scaffold with SnackbarHost

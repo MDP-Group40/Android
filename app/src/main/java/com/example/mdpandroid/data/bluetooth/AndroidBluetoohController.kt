@@ -337,8 +337,10 @@ class AndroidBluetoothController(
                     // Start listening for incoming messages after establishing the connection
                     emitAll(
                         dataTransferService!!.listenForIncomingMessages().map { message ->
+                            Log.d("Bluetooth", "Message transfer succeeded: $message") // Log the successful transfer
                             ConnectionResult.TransferSucceeded(message)
                         }
+
                     )
                 } ?: run {
                     emit(ConnectionResult.Error("Failed to create client socket"))

@@ -1,5 +1,6 @@
 package com.example.mdpandroid.ui.bluetooth.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -102,12 +103,13 @@ fun ChatScreen(
             }
 
             // Display all existing messages
-            items(state.messages) { message ->
+            items(state.messages) { message -> // Check this part
+                Log.d("ChatScreen", "Displaying message: $message") // Log message content
                 Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     ChatMessage(
-                        message = message,
+                        message = message, // Ensure this is the correct message
                         modifier = Modifier.align(
                             if (message.isFromLocalUser) Alignment.End else Alignment.Start
                         )

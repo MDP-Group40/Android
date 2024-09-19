@@ -25,15 +25,13 @@ fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int) {
                         isObstacle = viewModel.isObstaclePosition(x.toFloat(), y.toFloat()),
                         isTarget = viewModel.isTargetPosition(x.toFloat(), y.toFloat()),
                         onClick = {
-                            // Only allow adding/removing in "AddingObstacle" mode
                             if (viewModel.isAddingObstacle) {
                                 if (viewModel.isObstaclePosition(x.toFloat(), y.toFloat())) {
                                     viewModel.removeObstacle(x.toFloat(), y.toFloat())
                                 } else {
                                     viewModel.addObstacle(x.toFloat(), y.toFloat())
                                 }
-                            }
-                            else if (viewModel.isAddingTarget){
+                            } else if (viewModel.isAddingTarget) {
                                 if (viewModel.isTargetPosition(x.toFloat(), y.toFloat())) {
                                     viewModel.removeTarget(x.toFloat(), y.toFloat())
                                 } else {
@@ -42,13 +40,11 @@ fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int) {
                             }
                         },
                         onLongPress = {
-                            // Trigger enlargement on long press
                             if (!viewModel.isAddingTarget && !viewModel.isAddingObstacle) {
                                 viewModel.startEditingObstacleFacing(x.toFloat(), y.toFloat())
                             }
                         },
                         onDrag = { dx, dy ->
-                            // Only change facing direction when not adding target
                             if (!viewModel.isAddingTarget && !viewModel.isAddingObstacle) {
                                 viewModel.updateObstacleFacing(x.toFloat(), y.toFloat(), dx, dy)
                             }
@@ -56,11 +52,18 @@ fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int) {
                         numberOnObstacle = obstacle?.numberOnObstacle,
                         facing = obstacle?.facing,
                         targetID = obstacle?.targetID,
-                        isEditing = viewModel.isEditingObstacle(x.toFloat(), y.toFloat()) // Check if the obstacle is being edited
+                        isEditing = viewModel.isEditingObstacle(x.toFloat(), y.toFloat()),
+                        onFacingChange = { newFacing ->
+                            // Update the Obstacle's facing in the ViewModel or state
+                            if (obstacle != null) {
+                                obstacle.facing = newFacing
+                            }
+                        }
                     )
                 }
             }
         }
     }
 }
+
 
