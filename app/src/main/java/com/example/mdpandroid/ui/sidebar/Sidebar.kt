@@ -334,7 +334,7 @@ fun SetCarDialog(
 ) {
     var x by remember { mutableStateOf("") }
     var y by remember { mutableStateOf("") }
-    var selectedOrientation by remember { mutableStateOf(Orientation.NORTH) }
+    var selectedOrientation by remember { mutableStateOf(Orientation.N) }
     var errorMessage by remember { mutableStateOf("") }
 
     val coroutineScope = rememberCoroutineScope()

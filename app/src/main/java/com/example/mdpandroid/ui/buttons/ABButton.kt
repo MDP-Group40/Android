@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mdpandroid.R
 import com.example.mdpandroid.domain.BluetoothMessage
+import com.example.mdpandroid.domain.MovementMessage
 import com.example.mdpandroid.ui.bluetooth.BluetoothViewModel
 import com.example.mdpandroid.ui.shared.SharedViewModel
 import kotlinx.serialization.encodeToString
@@ -29,7 +30,7 @@ fun ABButton(viewModel: ControlViewModel,
     fun signalMovement(direction:String){
         if (sharedViewModel.drivingMode.value){  // Check if drivingMode is true
             val message = sharedViewModel.car.value?.let {
-                BluetoothMessage.MovementMessage(
+                MovementMessage(
                     car = it,
                     direction = direction,
                     senderName = "Android Device",
@@ -64,12 +65,11 @@ fun ABButton(viewModel: ControlViewModel,
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
             modifier = Modifier
-                .size(120.dp)
+                .size(100.dp)
                 .offset(x = 40.dp),
             imageResId = R.drawable.a_button
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
         MoveButton(
             onPress = {
                 viewModel.handleButtonB()
@@ -83,7 +83,7 @@ fun ABButton(viewModel: ControlViewModel,
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
             modifier = Modifier
-                .size(120.dp)
+                .size(100.dp)
                 .offset(x = (-30).dp),
             imageResId = R.drawable.b_button
         )

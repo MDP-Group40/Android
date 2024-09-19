@@ -1,5 +1,7 @@
 package com.example.mdpandroid.data.model
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.serialization.Serializable
 
 
@@ -12,15 +14,15 @@ enum class Facing {
 
 @Serializable
 data class Obstacle(
-    var positionX: Float,
-    var positionY: Float,
+    var x: Float,
+    var y: Float,
     var targetID: Int,
-    var orientation: Facing = Facing.NORTH,
+    var facing: MutableState<Facing?> = mutableStateOf(null),
     var numberOnObstacle: Int? = null, // number on object
     val width: Int = 1,
     val height: Int = 1
 ) {
     override fun toString(): String {
-        return "Obstacle(x=$positionX, y=$positionY, targetID=$targetID)"
+        return "Obstacle(x=$x, y=$y, targetID=$targetID)"
     }
 }

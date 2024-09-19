@@ -2,9 +2,11 @@ package com.example.mdpandroid.ui.grid
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -12,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
 import com.example.mdpandroid.R
+import com.example.mdpandroid.data.model.Facing
 
 @Composable
 fun GridCell(
@@ -19,9 +22,13 @@ fun GridCell(
     isObstacle: Boolean,
     isTarget: Boolean,
     onClick: () -> Unit,
-    targetID: Int? = null
+    onLongPress: () -> Unit,
+    onDrag: (Float, Float) -> Unit,
+    numberOnObstacle: Int?,
+    facing: MutableState<Facing?>?,
+    targetID: Int? = null,
+    isEditing: Boolean // Pass the editing state to control enlargement
 ) {
-    // If there's an expensive or non-composable function (e.g., some complex calculation), use remember
     val painter = painterResource(id = R.drawable.gridcell)
 
     Box(
@@ -29,7 +36,15 @@ fun GridCell(
             .size(cellSize.dp)
             .background(Color.Black)
             .pointerInput(Unit) {
-                detectTapGestures(onTap = { onClick() })
+                detectTapGestures(
+                    onTap = { onClick() },
+                    onLongPress = { onLongPress() }
+                )
+            }
+            .pointerInput(Unit) {
+                detectDragGestures { change, dragAmount ->
+                    onDrag(dragAmount.x, dragAmount.y)
+                }
             },
         contentAlignment = Alignment.Center
     ) {
@@ -39,9 +54,16 @@ fun GridCell(
             modifier = Modifier
         )
         if (isObstacle && targetID != null) {
-            Obstacle(cellSize = cellSize, targetID = targetID)
+            Obstacle(
+                cellSize = cellSize,
+                targetID = targetID,
+                numberOnObstacle = numberOnObstacle,
+                facing = facing,
+                isEditing = isEditing // Pass the editing state to the Obstacle composable
+            )
         } else if (isTarget) {
             Target(cellSize = cellSize)
         }
     }
 }
+

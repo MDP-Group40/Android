@@ -90,7 +90,7 @@ class CarViewModel(
             movementJob = viewModelScope.launch {
                 while (true) {
                     car.value?.let { currentCar ->
-                        Log.d("MovementLoop", "Car position: (${currentCar.positionX}, ${currentCar.positionY}), Rotation: ${currentCar.rotationAngle}")
+                        Log.d("MovementLoop", "Car position: (${currentCar.x}, ${currentCar.y}), Rotation: ${currentCar.rotationAngle}")
 
                         // Move the calculations off the main thread
                         val newPosition: Car? = withContext(Dispatchers.Default) {
@@ -172,12 +172,12 @@ class CarViewModel(
         val deltaY = direction * movementStepMajor * cos(angleInRadians)  // X-axis influences Y movement
 
         // Rounding the new position to 2 decimal places using Locale.US
-        val roundedX = String.format(Locale.US, "%.1f", car.positionX + deltaX).toFloat()
-        val roundedY = String.format(Locale.US, "%.1f", car.positionY - deltaY).toFloat()
+        val roundedX = String.format(Locale.US, "%.1f", car.x + deltaX).toFloat()
+        val roundedY = String.format(Locale.US, "%.1f", car.y - deltaY).toFloat()
 
         return car.copy(
-            positionX = roundedX,
-            positionY = roundedY
+            x = roundedX,
+            y = roundedY
         )
     }
 
@@ -188,22 +188,22 @@ class CarViewModel(
         }
 
         val newOrientation = when {
-            newAngle < 11.25 || newAngle >= 348.75 -> Orientation.NORTH
-            newAngle >= 11.25 && newAngle < 33.75 -> Orientation.NORTHNORTHEAST
-            newAngle >= 33.75 && newAngle < 56.25 -> Orientation.NORTHEAST
-            newAngle >= 56.25 && newAngle < 78.75 -> Orientation.NORTHEASTEAST
-            newAngle >= 78.75 && newAngle < 101.25 -> Orientation.EAST
-            newAngle >= 101.25 && newAngle < 123.75 -> Orientation.SOUTHEASTEAST
-            newAngle >= 123.75 && newAngle < 146.25 -> Orientation.SOUTHEAST
-            newAngle >= 146.25 && newAngle < 168.75 -> Orientation.SOUTHSOUTHEAST
-            newAngle >= 168.75 && newAngle < 191.25 -> Orientation.SOUTH
-            newAngle >= 191.25 && newAngle < 213.75 -> Orientation.SOUTHSOUTHWEST
-            newAngle >= 213.75 && newAngle < 236.25 -> Orientation.SOUTHWEST
-            newAngle >= 236.25 && newAngle < 258.75 -> Orientation.SOUTHWESTWEST
-            newAngle >= 258.75 && newAngle < 281.25 -> Orientation.WEST
-            newAngle >= 281.25 && newAngle < 303.75 -> Orientation.NORTHWESTWEST
-            newAngle >= 303.75 && newAngle < 326.25 -> Orientation.NORTHWEST
-            newAngle >= 326.25 && newAngle < 348.75 -> Orientation.NORTHNORTHWEST
+            newAngle < 11.25 || newAngle >= 348.75 -> Orientation.N
+            newAngle >= 11.25 && newAngle < 33.75 -> Orientation.NNE
+            newAngle >= 33.75 && newAngle < 56.25 -> Orientation.NE
+            newAngle >= 56.25 && newAngle < 78.75 -> Orientation.NEE
+            newAngle >= 78.75 && newAngle < 101.25 -> Orientation.E
+            newAngle >= 101.25 && newAngle < 123.75 -> Orientation.SEE
+            newAngle >= 123.75 && newAngle < 146.25 -> Orientation.SE
+            newAngle >= 146.25 && newAngle < 168.75 -> Orientation.SSE
+            newAngle >= 168.75 && newAngle < 191.25 -> Orientation.S
+            newAngle >= 191.25 && newAngle < 213.75 -> Orientation.SSW
+            newAngle >= 213.75 && newAngle < 236.25 -> Orientation.SW
+            newAngle >= 236.25 && newAngle < 258.75 -> Orientation.SWW
+            newAngle >= 258.75 && newAngle < 281.25 -> Orientation.W
+            newAngle >= 281.25 && newAngle < 303.75 -> Orientation.NWW
+            newAngle >= 303.75 && newAngle < 326.25 -> Orientation.NW
+            newAngle >= 326.25 && newAngle < 348.75 -> Orientation.NNW
             else -> carPosition.orientation // Fallback, shouldn't happen
         }
 
@@ -214,7 +214,7 @@ class CarViewModel(
         val sideCenters = getSideCenters(newPosition)
         var isCollisionDetected = false
 
-        Log.d("MovementLoop", "Checking grid cell occupancy for car position: (${newPosition.positionX}, ${newPosition.positionY}), Rotation: ${newPosition.rotationAngle}")
+        Log.d("MovementLoop", "Checking grid cell occupancy for car position: (${newPosition.x}, ${newPosition.y}), Rotation: ${newPosition.rotationAngle}")
         Log.d("MovementLoop", "Side centers: $sideCenters")
 
         for ((centerX, centerY) in sideCenters) {
@@ -232,8 +232,8 @@ class CarViewModel(
 
             // Check obstacle and target collisions
             val isObstacle = obstacles.any { obstacle ->
-                val obstacleGridX = (obstacle.positionX).toInt()
-                val obstacleGridY = (obstacle.positionY).toInt()
+                val obstacleGridX = (obstacle.x).toInt()
+                val obstacleGridY = (obstacle.y).toInt()
                 val hit = gridX == obstacleGridX && gridY == obstacleGridY
                 if (hit) {
                     Log.d("MovementLoop", "Side center ($gridX, $gridY) collides with obstacle at ($obstacleGridX, $obstacleGridY)")
@@ -242,8 +242,8 @@ class CarViewModel(
             }
 
             val isTarget = target.any { target ->
-                val targetGridX = (target.positionX).toInt()
-                val targetGridY = (target.positionY).toInt()
+                val targetGridX = (target.x).toInt()
+                val targetGridY = (target.y).toInt()
                 val hit = gridX == targetGridX && gridY == targetGridY
                 if (hit) {
                     Log.d("MovementLoop", "Side center ($gridX, $gridY) collides with target at ($targetGridX, $targetGridY)")
@@ -264,12 +264,12 @@ class CarViewModel(
 
     private fun getDimensionsForOrientation(orientation: Orientation): Pair<Float, Float> {
         return when (orientation) {
-            Orientation.NORTH, Orientation.SOUTH,Orientation.SOUTHSOUTHWEST,
-            Orientation.SOUTHSOUTHEAST, Orientation.NORTHNORTHEAST,Orientation.NORTHNORTHWEST -> Pair(2f, 3f)  // width, height
-            Orientation.EAST, Orientation.WEST,  Orientation.SOUTHEASTEAST,
-            Orientation.SOUTHWESTWEST, Orientation.NORTHEASTEAST, Orientation.NORTHWESTWEST -> Pair(3f, 2f)  // width, height
-            Orientation.NORTHEAST, Orientation.SOUTHEAST,
-            Orientation.SOUTHWEST, Orientation.NORTHWEST -> Pair(1.5f, 2.5f)  // width, height
+            Orientation.N, Orientation.S,Orientation.SSW,
+            Orientation.SSE, Orientation.NNE,Orientation.NNW -> Pair(2f, 3f)  // width, height
+            Orientation.E, Orientation.W,  Orientation.SEE,
+            Orientation.SWW, Orientation.NEE, Orientation.NWW -> Pair(3f, 2f)  // width, height
+            Orientation.NE, Orientation.SE,
+            Orientation.SW, Orientation.NW -> Pair(1.5f, 2.5f)  // width, height
 
         }
     }
@@ -280,14 +280,14 @@ class CarViewModel(
         val halfWidth = width / 2
         val halfHeight = height / 2
 
-        val centerX = car.positionX
-        val centerY = car.positionY
+        val centerX = car.x
+        val centerY = car.y
 
         // The four sides' centers (top, bottom, left, right) based on orientation
         return when (car.orientation) {
             // For orientations like NORTH and SOUTH, the standard top, bottom, left, and right apply
-            Orientation.NORTH, Orientation.SOUTH, Orientation.SOUTHSOUTHEAST, Orientation.SOUTHSOUTHWEST,
-            Orientation.NORTHNORTHWEST, Orientation.NORTHNORTHEAST -> listOf(
+            Orientation.N, Orientation.S, Orientation.SSE, Orientation.SSW,
+            Orientation.NNW, Orientation.NNE -> listOf(
                 Pair(centerX, centerY - halfHeight), // Top center
                 Pair(centerX, centerY + halfHeight), // Bottom center
                 Pair(centerX - halfWidth, centerY),  // Left center
@@ -295,8 +295,8 @@ class CarViewModel(
             )
 
             // For orientations like EAST and WEST, the "top" and "bottom" are on the X-axis (left and right)
-            Orientation.EAST, Orientation.WEST, Orientation.SOUTHEASTEAST, Orientation.SOUTHWESTWEST,
-            Orientation.NORTHEASTEAST, Orientation.NORTHWESTWEST -> listOf(
+            Orientation.E, Orientation.W, Orientation.SEE, Orientation.SWW,
+            Orientation.NEE, Orientation.NWW -> listOf(
                 Pair(centerX - halfHeight, centerY), // Left center (on the X-axis)
                 Pair(centerX + halfHeight, centerY), // Right center (on the X-axis)
                 Pair(centerX, centerY - halfWidth),  // Top center (on the Y-axis)
@@ -304,7 +304,7 @@ class CarViewModel(
             )
 
             // For diagonal orientations like NORTHEAST, SOUTHEAST, NORTHWEST, and SOUTHWEST
-            Orientation.NORTHEAST, Orientation.SOUTHEAST, Orientation.SOUTHWEST, Orientation.NORTHWEST -> listOf(
+            Orientation.NE, Orientation.SE, Orientation.SW, Orientation.NW -> listOf(
                 Pair(centerX, centerY - 1.25f),  // Top center (based on height 2.5)
                 Pair(centerX, centerY + 1.25f),  // Bottom center
                 Pair(centerX - 0.75f, centerY),  // Left center (based on width 1.5)

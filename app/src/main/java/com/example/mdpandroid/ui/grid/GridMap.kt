@@ -19,13 +19,13 @@ fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int) {
             Row {
                 for (x in 0 until gridSize) {
                     val obstacle = viewModel.getObstacleAt(x.toFloat(), y.toFloat())
-                    val targetID = obstacle?.targetID
 
                     GridCell(
                         cellSize = cellSize,
                         isObstacle = viewModel.isObstaclePosition(x.toFloat(), y.toFloat()),
                         isTarget = viewModel.isTargetPosition(x.toFloat(), y.toFloat()),
                         onClick = {
+                            // Only allow adding/removing in "AddingObstacle" mode
                             if (viewModel.isAddingObstacle) {
                                 if (viewModel.isObstaclePosition(x.toFloat(), y.toFloat())) {
                                     viewModel.removeObstacle(x.toFloat(), y.toFloat())
@@ -33,7 +33,7 @@ fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int) {
                                     viewModel.addObstacle(x.toFloat(), y.toFloat())
                                 }
                             }
-                            else if (viewModel.isAddingTarget) {
+                            else if (viewModel.isAddingTarget){
                                 if (viewModel.isTargetPosition(x.toFloat(), y.toFloat())) {
                                     viewModel.removeTarget(x.toFloat(), y.toFloat())
                                 } else {
@@ -41,10 +41,26 @@ fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int) {
                                 }
                             }
                         },
-                        targetID = targetID // Pass the target ID to the GridCell
+                        onLongPress = {
+                            // Trigger enlargement on long press
+                            if (!viewModel.isAddingTarget && !viewModel.isAddingObstacle) {
+                                viewModel.startEditingObstacleFacing(x.toFloat(), y.toFloat())
+                            }
+                        },
+                        onDrag = { dx, dy ->
+                            // Only change facing direction when not adding target
+                            if (!viewModel.isAddingTarget && !viewModel.isAddingObstacle) {
+                                viewModel.updateObstacleFacing(x.toFloat(), y.toFloat(), dx, dy)
+                            }
+                        },
+                        numberOnObstacle = obstacle?.numberOnObstacle,
+                        facing = obstacle?.facing,
+                        targetID = obstacle?.targetID,
+                        isEditing = viewModel.isEditingObstacle(x.toFloat(), y.toFloat()) // Check if the obstacle is being edited
                     )
                 }
             }
         }
     }
 }
+

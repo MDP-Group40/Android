@@ -21,7 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.mdpandroid.domain.BluetoothMessage
+import com.example.mdpandroid.domain.InfoMessage
+import com.example.mdpandroid.domain.TextMessage
 import com.example.mdpandroid.ui.bluetooth.BluetoothUiState
 import com.example.mdpandroid.ui.header.StatusDisplay
 import com.example.mdpandroid.ui.safeNavigate
@@ -32,7 +33,7 @@ fun ChatScreen(
     state: BluetoothUiState,
     navController: NavHostController,
     onDisconnect: () -> Unit,
-    onSendMessage: (BluetoothMessage.TextMessage) -> Unit, // Updated to send TextMessage
+    onSendMessage: (TextMessage) -> Unit, // Updated to send TextMessage
     isConnected: Boolean
 ) {
     val message = rememberSaveable { mutableStateOf("") }
@@ -78,8 +79,8 @@ fun ChatScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         ChatMessage(
-                            message = BluetoothMessage.InfoMessage(
-                                message = "Please connect to a device first",
+                            message = InfoMessage(
+                                value = "Please connect to a device first",
                                 senderName = "System",
                                 isFromLocalUser = false
                             )
@@ -143,8 +144,8 @@ fun ChatScreen(
                 onClick = {
                     if (isConnected) {
                         // Create a TextMessage and send it
-                        val textMessage = BluetoothMessage.TextMessage(
-                            message = message.value,
+                        val textMessage = TextMessage(
+                            value = message.value,
                             senderName = "Android Device", // Replace with actual sender name if available
                             isFromLocalUser = true
                         )

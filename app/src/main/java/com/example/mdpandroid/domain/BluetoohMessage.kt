@@ -6,63 +6,65 @@ import com.example.mdpandroid.data.model.Obstacle
 import com.example.mdpandroid.data.model.Target
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Polymorphic
 
-// Define a sealed class for polymorphic serialization
+@Polymorphic
 @Serializable
 sealed class BluetoothMessage {
-
     abstract val senderName: String
     abstract val isFromLocalUser: Boolean
+}
 
-    @Serializable
-    @SerialName("text")
-    data class TextMessage(
-        val message: String,
-        override val senderName: String,
-        override val isFromLocalUser: Boolean
-    ) : BluetoothMessage() {
-        override fun toString(): String {
-            return message
-        }
-    }
-
-    @Serializable
-    @SerialName("info")
-    data class InfoMessage(
-        val message: String,
-        override val senderName: String,
-        override val isFromLocalUser: Boolean
-    ) : BluetoothMessage() {
-        override fun toString(): String {
-            return message
-        }
-    }
-
-    @Serializable
-    @SerialName("start")
-    data class StartMessage(
-        val car: Car,
-        val obstacles: List<Obstacle>,
-        val target: List<Target>,
-        val mode: Modes,
-        override val senderName: String,
-        override val isFromLocalUser: Boolean
-    ) : BluetoothMessage() {
-        override fun toString(): String {
-            return "Car = (${car.positionX}, ${car.positionY}) Obstacle List=${obstacles.size} Target List = ${target.size}, mode = {$mode}"
-        }
-    }
-
-    @Serializable
-    @SerialName("movement")
-    data class MovementMessage(
-        val car: Car,
-        val direction: String,
-        override val senderName: String,
-        override val isFromLocalUser: Boolean
-    ) : BluetoothMessage() {
-        override fun toString(): String {
-            return "Car = (${car.positionX}, ${car.positionY}), Direction = $direction"
-        }
+@Serializable
+@SerialName("message")
+data class TextMessage(
+    val value: String,
+    override val senderName: String,
+    override val isFromLocalUser: Boolean
+) : BluetoothMessage() {
+    override fun toString(): String {
+        return value
     }
 }
+
+@Serializable
+@SerialName("info")
+data class InfoMessage(
+    val value: String,
+    override val senderName: String,
+    override val isFromLocalUser: Boolean
+) : BluetoothMessage() {
+    override fun toString(): String {
+        return value
+    }
+}
+
+
+@Serializable
+@SerialName("start")
+data class StartMessage(
+    val car: Car,
+    val obstacles: List<Obstacle>,
+    val target: List<Target>,
+    val mode: Int,
+    override val senderName: String,
+    override val isFromLocalUser: Boolean
+) : BluetoothMessage() {
+    override fun toString(): String {
+        return "Car = (${car.x}, ${car.y}) Obstacle List=${obstacles.size} Target List = ${target.size}, mode = {$mode}"
+    }
+}
+
+@Serializable
+@SerialName("movement")
+data class MovementMessage(
+    val car: Car,
+    val direction: String,
+    override val senderName: String,
+    override val isFromLocalUser: Boolean
+) : BluetoothMessage() {
+    override fun toString(): String {
+        return "Car = (${car.x}, ${car.y}), Direction = $direction"
+    }
+}
+

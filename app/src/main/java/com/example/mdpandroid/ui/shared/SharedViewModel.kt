@@ -55,9 +55,9 @@ class SharedViewModel @Inject constructor() : ViewModel() {
         snackbarDuration.value = null
     }
 
-    fun setCar(positionX: Float, positionY: Float, orientation: Orientation = Orientation.NORTH) {
+    fun setCar(positionX: Float, positionY: Float, orientation: Orientation = Orientation.N) {
         // Create a new Car instance
-        val newCar = Car(positionX = positionX, positionY = positionY, orientation = orientation)
+        val newCar = Car(x = positionX, y = positionY, orientation = orientation)
 
         // Set the rotation angle based on the orientation
         newCar.setRotationAngleBasedOnOrientation()

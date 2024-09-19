@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mdpandroid.data.model.Facing
 import com.example.mdpandroid.data.model.Modes
 import com.example.mdpandroid.data.model.Obstacle
 import com.example.mdpandroid.data.model.Target
@@ -33,6 +34,10 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
     var isAddingTarget by mutableStateOf(false)
         private set
 
+    // Add a mutable state to track the obstacle being edited
+    var editingObstaclePosition by mutableStateOf<Pair<Float, Float>?>(null)
+        private set
+
     // Toggle modes
     fun toggleMode(newMode: Modes) {
         sharedViewModel.mode.value = if (sharedViewModel.mode.value == newMode) Modes.IDLE else newMode
@@ -42,12 +47,51 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
         sharedViewModel.drivingMode.value = !sharedViewModel.drivingMode.value
     }
 
+    // Start editing an obstacle's facing
+    fun startEditingObstacleFacing(x: Float, y: Float) {
+        // Set the editing obstacle position to the clicked obstacle
+        editingObstaclePosition = Pair(x, y)
+        Log.d("SidebarViewModel", "Editing obstacle facing at ($x, $y)")
+    }
+
+    // Stop editing the obstacle (call this after the user finishes dragging or cancels)
+    private fun stopEditingObstacleFacing() {
+        editingObstaclePosition = null
+        Log.d("SidebarViewModel", "Stopped editing obstacle")
+    }
+
+    // Check if an obstacle is being edited (this helps the UI know whether to enlarge an obstacle)
+    fun isEditingObstacle(x: Float, y: Float): Boolean {
+        return editingObstaclePosition?.let { it.first == x && it.second == y } ?: false
+    }
+
+    fun updateObstacleFacing(x: Float, y: Float, dx: Float, dy: Float) {
+        val obstacle = getObstacleAt(x, y) ?: return
+
+        // Determine the direction of the drag based on the larger movement
+        val newFacing = when {
+            kotlin.math.abs(dx) > kotlin.math.abs(dy) -> { // Greater horizontal movement
+                if (dx > 0) Facing.EAST else Facing.WEST
+            }
+            kotlin.math.abs(dy) > kotlin.math.abs(dx) -> { // Greater vertical movement
+                if (dy > 0) Facing.SOUTH else Facing.NORTH
+            }
+            else -> obstacle.facing.value // Keep the existing facing if no significant movement
+        }
+
+        obstacle.facing.value = newFacing // Update the state
+        stopEditingObstacleFacing()
+        Log.d("SidebarViewModel", "Updated obstacle facing at ($x, $y) to $newFacing")
+    }
+
+
+
     fun isObstaclePosition(x: Float, y: Float): Boolean {
-        return obstacles.any { it.positionX == x && it.positionY == y }
+        return obstacles.any { it.x == x && it.y == y }
     }
 
     fun isTargetPosition(x: Float, y: Float): Boolean {
-        return target.any { it.positionX == x && it.positionY == y }
+        return target.any { it.x == x && it.y == y }
     }
 
     fun toggleAddingObstacle() {
@@ -92,7 +136,7 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
     fun removeObstacle(x: Float, y: Float) {
         viewModelScope.launch(Dispatchers.Default) {
             // Perform the removal in the background
-            obstacles.removeAll { it.positionX == x && it.positionY == y }
+            obstacles.removeAll { it.x == x && it.y == y }
 
             // Reassign IDs after removal
             reassignTargetIDs()
@@ -105,12 +149,12 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
     }
 
     fun removeTarget(x: Float, y: Float) {
-        target.removeAll { it.positionX == x && it.positionY == y }
+        target.removeAll { it.x == x && it.y == y }
         Log.d("SimulatorViewModel", "Target removed at ($x, $y)")
     }
 
     fun getObstacleAt(x: Float, y: Float): Obstacle? {
-        return obstacles.find { it.positionX == x && it.positionY == y }
+        return obstacles.find { it.x == x && it.y == y }
     }
 
 //    fun getTargetAt(x: Float, y: Float): Target? {
@@ -146,8 +190,8 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
         val carPosition = car.value ?: return false  // Return false if the car is null
         val halfWidth = carPosition.width / 2
         val halfHeight = carPosition.height / 2
-        return x > (carPosition.positionX - halfWidth) && x < (carPosition.positionX + halfWidth) &&
-                y > (carPosition.positionY - halfHeight) && y < (carPosition.positionY + halfHeight)
+        return x > (carPosition.x - halfWidth) && x < (carPosition.y + halfWidth) &&
+                y > (carPosition.x - halfHeight) && y < (carPosition.y + halfHeight)
     }
 
 }

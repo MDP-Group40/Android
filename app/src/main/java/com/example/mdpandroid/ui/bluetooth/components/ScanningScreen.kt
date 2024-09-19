@@ -37,6 +37,7 @@ fun ScanningScreen(
     onStartScan: () -> Unit,
     onStopScan: () -> Unit,
     onDeviceClick: (BluetoothDevice) -> Unit,
+    connectToLastDevice: ()-> Unit,
     modifier: Modifier
 ) {
     Column(
@@ -60,6 +61,8 @@ fun ScanningScreen(
                 text = if (isBluetoothOn) "BLUETOOTH: ON" else "BLUETOOTH: OFF"
             )
 
+            Spacer(modifier = Modifier.width(8.dp))
+
             // Search/Scanning button
             CustomStyledButton(
                 onClick = {
@@ -70,6 +73,15 @@ fun ScanningScreen(
                     }
                 },
                 text = if (isScanning) "SEARCHING" else "SEARCH"
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            CustomStyledButton(
+                onClick = {
+                    connectToLastDevice()
+                },
+                text = "RECONNECT"
             )
         }
 

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mdpandroid.R
 import com.example.mdpandroid.domain.BluetoothMessage
+import com.example.mdpandroid.domain.MovementMessage
 import com.example.mdpandroid.ui.bluetooth.BluetoothViewModel
 import com.example.mdpandroid.ui.shared.SharedViewModel
 import kotlinx.serialization.encodeToString
@@ -33,7 +34,7 @@ fun DPad(
     fun signalMovement(direction:String){
         if (sharedViewModel.drivingMode.value){  // Check if drivingMode is true
             val message = sharedViewModel.car.value?.let {
-                BluetoothMessage.MovementMessage(
+                MovementMessage(
                     car = it,
                     direction = direction,
                     senderName = "Android Device",
@@ -60,7 +61,7 @@ fun DPad(
             contentDescription = "DPad Background",
             modifier = Modifier
                 .fillMaxSize()
-                .scale(1.4f)
+                .scale(1f)
                 .offset(x = (-15).dp),
         )
 
@@ -81,8 +82,8 @@ fun DPad(
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
                 modifier = Modifier
-                    .size(80.dp)
-                    .offset(x = 38.dp, y = (-28).dp),
+                    .size(75.dp)
+                    .offset(x = 47.dp, y = (-5).dp),
                 imageResId = R.drawable.up,
             )
         }
@@ -102,8 +103,8 @@ fun DPad(
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
                 modifier = Modifier
-                    .size(80.dp)
-                    .offset(x = (-40).dp, y = 52.dp),
+                    .size(75.dp)
+                    .offset(x = (-10).dp, y = 54.dp),
                 imageResId = R.drawable.left
             )
 
@@ -120,8 +121,8 @@ fun DPad(
                 activeButton = activeButton,
                 setActiveButton = { setActiveButton(it) },
                 modifier = Modifier
-                    .size(80.dp)
-                    .offset(x = 40.dp, y = 52.dp),
+                    .size(75.dp)
+                    .offset(x = 30.dp, y = 54.dp),
                 imageResId = R.drawable.right
             )
         }
@@ -140,8 +141,8 @@ fun DPad(
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
             modifier = Modifier
-                .size(80.dp)
-                .offset(x = 38.dp, y = 128.dp),
+                .size(75.dp)
+                .offset(x = 45.dp, y = 110.dp),
             imageResId = R.drawable.down
         )
     }

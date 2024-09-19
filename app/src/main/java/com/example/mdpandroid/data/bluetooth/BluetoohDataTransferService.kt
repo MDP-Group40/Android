@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothSocket
 import android.util.Log
 import com.example.mdpandroid.domain.BluetoothMessage
 import com.example.mdpandroid.domain.TransferFailedException
+import com.example.mdpandroid.ui.SerializationConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -19,6 +20,8 @@ class BluetoothDataTransferService(
 
     // Listen for incoming messages from the Bluetooth socket
     fun listenForIncomingMessages(): Flow<BluetoothMessage> {
+        Log.d("Bluetooth", "Getting ready to listen for incoming messages")
+
         return flow {
             if (!socket.isConnected) {
                 Log.e("Bluetooth", "Socket is not connected. Exiting flow.")
@@ -40,7 +43,8 @@ class BluetoothDataTransferService(
                     val incomingMessage = buffer.decodeToString(endIndex = byteCount)
 
                     try {
-                        val bluetoothMessage = Json.decodeFromString<BluetoothMessage>(incomingMessage)
+                        // Use SerializationConfig.json for deserialization
+                        val bluetoothMessage = SerializationConfig.json.decodeFromString<BluetoothMessage>(incomingMessage)
                         Log.d("Bluetooth", "Received message: $bluetoothMessage")
                         emit(bluetoothMessage) // Emit the received message via Flow
                     } catch (e: Exception) {
@@ -53,6 +57,7 @@ class BluetoothDataTransferService(
         }.flowOn(Dispatchers.IO) // Ensure the flow runs on the IO dispatcher
     }
 
+
     // Helper function to send a BluetoothMessage by serializing it to JSON
     suspend fun sendBluetoothMessage(bluetoothMessage: BluetoothMessage): Boolean {
         val messageJson = Json.encodeToString(bluetoothMessage)
@@ -63,6 +68,7 @@ class BluetoothDataTransferService(
 
     // Function to send raw byte data to the Bluetooth socket
     private suspend fun sendMessage(bytes: ByteArray): Boolean {
+        Log.d("Bluetooth", "Trying to send message in BluetoothDataTransferService")
         return withContext(Dispatchers.IO) {
             try {
                 socket.outputStream.write(bytes) // Write bytes to the socket output stream

@@ -26,7 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.mdpandroid.R
 import com.example.mdpandroid.data.model.Modes
-import com.example.mdpandroid.domain.BluetoothMessage
+import com.example.mdpandroid.domain.StartMessage
 import com.example.mdpandroid.ui.bluetooth.BluetoothViewModel
 import com.example.mdpandroid.ui.safeNavigate
 import com.example.mdpandroid.ui.shared.SharedViewModel
@@ -58,11 +58,11 @@ fun BottomButtons(
             val targets = sharedViewModel.target.toList()
 
             // Create a StartMessage with the extracted data
-            val startMessage = BluetoothMessage.StartMessage(
+            val startMessage = StartMessage(
                 car = car,
                 obstacles = obstacles,
                 target = targets,
-                mode = currentMode,
+                mode = if(currentMode == Modes.IMAGERECOGNITION) 0 else 1,
                 senderName = "Android Device", // Modify as needed
                 isFromLocalUser = true
             )

@@ -30,7 +30,7 @@ fun LeftRightTab(navController: NavHostController) {
             painter = painterResource(id = R.drawable.l_button),
             contentDescription = "L Button",
             modifier = Modifier
-                .size(width = 200.dp, height = 65.dp) // Use rectangular size
+                .size(width = 200.dp, height = 60.dp) // Use rectangular size
                 .clickable { navController.safeNavigate("grid") } // Apply clickable directly to the image
         )
 
@@ -39,7 +39,7 @@ fun LeftRightTab(navController: NavHostController) {
             painter = painterResource(id = R.drawable.r_button),
             contentDescription = "R Button",
             modifier = Modifier
-                .size(width = 200.dp, height = 65.dp) // Use rectangular size
+                .size(width = 200.dp, height = 60.dp) // Use rectangular size
                 .clickable { navController.safeNavigate("message") } // Apply clickable directly to the image
         )
     }

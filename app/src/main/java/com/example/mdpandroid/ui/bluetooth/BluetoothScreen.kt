@@ -58,6 +58,7 @@ fun ConnectingTab(
                     onStartScan = { viewModel.startScan() },
                     onStopScan = { viewModel.stopScan() },
                     onDeviceClick = { device -> viewModel.connectToDevice(device) },
+                    connectToLastDevice = { viewModel.reconnectToLastPairedDevice() },
                     modifier = Modifier.verticalScroll(rememberScrollState()) // Make it scrollable
                 )
             }
@@ -88,7 +89,6 @@ fun MessagesTab(navController: NavHostController, viewModel: BluetoothViewModel 
         ChatScreen(
             state = state,
             onDisconnect = {
-                viewModel.disconnectFromDevice()
                 navController.navigate("grid") // Navigate back to connect screen on disconnect
             },
             onSendMessage = { textMessage ->

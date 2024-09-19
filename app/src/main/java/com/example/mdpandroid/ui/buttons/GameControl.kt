@@ -30,7 +30,7 @@ fun GameControls(
     Column(
         modifier = Modifier
             .background(Color(0xFF04A9FC))
-            .height(380.dp)
+            .height(310.dp)
             .fillMaxWidth(),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally

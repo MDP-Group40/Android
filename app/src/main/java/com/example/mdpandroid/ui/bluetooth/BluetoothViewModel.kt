@@ -69,7 +69,8 @@ open class BluetoothViewModel @Inject constructor(
         } else {
             bluetoothController.enableBluetooth()
         }
-        _isBluetoothEnabled.value = bluetoothController.isBluetoothEnabled()  // Update value after toggling
+        _isBluetoothEnabled.value =
+            bluetoothController.isBluetoothEnabled()  // Update value after toggling
     }
 
     // Start scanning for devices
@@ -101,13 +102,13 @@ open class BluetoothViewModel @Inject constructor(
                 isConnecting = true,
                 connectingDevice = device,
                 failedDevice = null,
-                errorMessage = null  // Clear error message
+                errorMessage = null
             )
         }
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                withTimeout(10000) {  // Timeout of 10 seconds for connection
+                withTimeout(10000) {
                     bluetoothController.connectToDevice(device)
                         .onEach { result ->
                             when (result) {
@@ -117,21 +118,28 @@ open class BluetoothViewModel @Inject constructor(
                                             isConnecting = false,
                                             isConnected = true,
                                             connectingDevice = null,
-                                            connectedDevice = BluetoothDevice(device.name, device.address),
-                                            failedDevice = null  // Clear any previous failed state
+                                            connectedDevice = BluetoothDevice(
+                                                device.name,
+                                                device.address
+                                            ),
+                                            failedDevice = null
                                         )
                                     }
                                 }
+
                                 is ConnectionResult.Error -> {
                                     _state.update {
                                         it.copy(
                                             isConnecting = false,
                                             connectingDevice = null,
-                                            failedDevice = device,  // Set the failed device
-                                            errorMessage = result.message  // Set the error message
+                                            failedDevice = device,
+                                            errorMessage = result.message
                                         )
                                     }
+                                    // Fallback to server mode if connection fails
+                                    waitForIncomingConnections()
                                 }
+
                                 is ConnectionResult.TransferSucceeded -> {
                                     _state.update { currentState ->
                                         currentState.copy(
@@ -152,11 +160,51 @@ open class BluetoothViewModel @Inject constructor(
                         errorMessage = "Connection timed out"
                     )
                 }
+                // Fallback to server mode if connection times out
+                waitForIncomingConnections()
             }
         }
     }
 
-    // Disconnect from the current device
+    // Reconnect to the last paired device if the connection is lost
+    fun reconnectToLastPairedDevice() {
+        viewModelScope.launch(Dispatchers.IO) {
+            when (val result = bluetoothController.reconnectToLastDevice()) {
+                is ConnectionResult.ConnectionEstablished -> {
+                    _state.update {
+                        it.copy(
+                            isConnected = true,
+                            errorMessage = null  // Clear error message
+                        )
+                    }
+                }
+                is ConnectionResult.Error -> {
+                    _state.update {
+                        it.copy(
+                            isConnected = false,
+                            errorMessage = result.message
+                        )
+                    }
+                }
+                else -> {
+                    // Handle other cases like TransferSucceeded, or do nothing
+                }
+            }
+        }
+    }
+
+    // Automatically attempt to reconnect if the connection is lost
+    fun onConnectionLost() {
+        _state.update {
+            it.copy(
+                isConnected = false,
+                errorMessage = "Connection lost, attempting to reconnect..."
+            )
+        }
+        reconnectToLastPairedDevice()  // Try to reconnect
+    }
+
+    // Call this method when the connection is lost
     fun disconnectFromDevice() {
         deviceConnectionJob?.cancel()
         bluetoothController.closeConnection()
@@ -166,10 +214,12 @@ open class BluetoothViewModel @Inject constructor(
                 isConnected = false
             )
         }
+        // Attempt to reconnect to the last paired device
+        reconnectToLastPairedDevice()
     }
 
     // Wait for incoming Bluetooth connections
-    fun waitForIncomingConnections() {
+    private fun waitForIncomingConnections() {
         _state.update { it.copy(isConnecting = true) }
         deviceConnectionJob = viewModelScope.launch(Dispatchers.IO) {
             bluetoothController.startBluetoothServer()
@@ -197,7 +247,6 @@ open class BluetoothViewModel @Inject constructor(
         }
     }
 
-    // Handle incoming messages
     private fun Flow<ConnectionResult>.listen(): Job {
         return onEach { result ->
             when (result) {
@@ -209,6 +258,7 @@ open class BluetoothViewModel @Inject constructor(
                             errorMessage = null
                         )
                     }
+                    Log.d("BluetoothViewModel", "Connection established. Messages: ${_state.value.messages}")
                 }
                 is ConnectionResult.TransferSucceeded -> {
                     _state.update {
@@ -216,6 +266,9 @@ open class BluetoothViewModel @Inject constructor(
                             messages = it.messages + result.message
                         )
                     }
+                    // Log the updated messages after a new message is received
+                    Log.d("BluetoothViewModel", "Message received: ${result.message}")
+                    Log.d("BluetoothViewModel", "Current messages: ${_state.value.messages}")
                 }
                 is ConnectionResult.Error -> {
                     _state.update {
@@ -225,6 +278,7 @@ open class BluetoothViewModel @Inject constructor(
                             errorMessage = result.message
                         )
                     }
+                    Log.e("BluetoothViewModel", "Error occurred: ${result.message}")
                 }
             }
         }
@@ -236,9 +290,11 @@ open class BluetoothViewModel @Inject constructor(
                         isConnecting = false,
                     )
                 }
+                Log.e("BluetoothViewModel", "Flow error: Connection closed.")
             }
             .launchIn(viewModelScope)
     }
+
 
     // Clear the current message
     private fun clearMessage() {
