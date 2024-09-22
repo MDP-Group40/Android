@@ -16,8 +16,27 @@ import com.example.mdpandroid.domain.BluetoothController
 import com.example.mdpandroid.domain.BluetoothDeviceDomain
 import com.example.mdpandroid.domain.BluetoothMessage
 import com.example.mdpandroid.domain.ConnectionResult
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import java.util.UUID
 
@@ -337,8 +356,10 @@ class AndroidBluetoothController(
                     // Start listening for incoming messages after establishing the connection
                     emitAll(
                         dataTransferService!!.listenForIncomingMessages().map { message ->
+                            Log.d("Bluetooth", "Message transfer succeeded: $message") // Log the successful transfer
                             ConnectionResult.TransferSucceeded(message)
                         }
+
                     )
                 } ?: run {
                     emit(ConnectionResult.Error("Failed to create client socket"))

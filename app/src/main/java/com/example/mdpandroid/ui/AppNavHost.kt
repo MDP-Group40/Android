@@ -5,6 +5,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.mdpandroid.ui.bluetooth.BluetoothViewModel
 import com.example.mdpandroid.ui.bluetooth.ConnectingTab
 import com.example.mdpandroid.ui.bluetooth.MessagesTab
 import com.example.mdpandroid.ui.shared.SharedViewModel
@@ -15,6 +16,7 @@ import com.example.mdpandroid.ui.simulator.RunningScreen
 fun AppNavHost(navController: NavHostController) {
 
     val sharedViewModel: SharedViewModel = hiltViewModel()  // Ensures the same instance is used
+    val bluetoothViewModel: BluetoothViewModel = hiltViewModel()
 
     NavHost(navController = navController, startDestination = "grid") {
         composable("grid") {
@@ -23,15 +25,15 @@ fun AppNavHost(navController: NavHostController) {
         }
         composable("bluetooth") {
             sharedViewModel.resetSnackbar()
-            ConnectingTab(navController = navController, sharedViewModel = sharedViewModel) // Navigate to connect tab
+            ConnectingTab(navController = navController, sharedViewModel = sharedViewModel, viewModel = bluetoothViewModel) // Navigate to connect tab
         }
         composable("message") {
             sharedViewModel.resetSnackbar()
-            MessagesTab(navController)  // Navigate to message tab
+            MessagesTab(navController = navController, viewModel = bluetoothViewModel)  // Navigate to message tab
         }
         composable("start") {
             sharedViewModel.resetSnackbar()
-            RunningScreen(sharedViewModel = sharedViewModel, navController = navController) // Navigate to message tab
+            RunningScreen(sharedViewModel = sharedViewModel, navController = navController, viewModel = bluetoothViewModel) // Navigate to message tab
         }
     }
 }

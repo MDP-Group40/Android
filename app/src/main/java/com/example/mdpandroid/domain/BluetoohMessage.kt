@@ -1,12 +1,11 @@
 package com.example.mdpandroid.domain
 
 import com.example.mdpandroid.data.model.Car
-import com.example.mdpandroid.data.model.Modes
 import com.example.mdpandroid.data.model.Obstacle
 import com.example.mdpandroid.data.model.Target
+import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Polymorphic
 
 @Polymorphic
 @Serializable
@@ -43,8 +42,8 @@ data class InfoMessage(
 @Serializable
 @SerialName("start")
 data class StartMessage(
-    val car: Car,
     val obstacles: List<Obstacle>,
+    val car: Car,
     val target: List<Target>,
     val mode: Int,
     override val senderName: String,

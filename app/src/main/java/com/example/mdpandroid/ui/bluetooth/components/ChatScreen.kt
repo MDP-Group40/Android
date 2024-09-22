@@ -1,7 +1,18 @@
 package com.example.mdpandroid.ui.bluetooth.components
 
+import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -102,12 +113,13 @@ fun ChatScreen(
             }
 
             // Display all existing messages
-            items(state.messages) { message ->
+            items(state.messages) { message -> // Check this part
+                Log.d("ChatScreen", "Displaying message: $message") // Log message content
                 Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     ChatMessage(
-                        message = message,
+                        message = message, // Ensure this is the correct message
                         modifier = Modifier.align(
                             if (message.isFromLocalUser) Alignment.End else Alignment.Start
                         )

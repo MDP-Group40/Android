@@ -1,9 +1,6 @@
 package com.example.mdpandroid.data.model
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import kotlinx.serialization.Serializable
-
 
 enum class Facing {
     NORTH,
@@ -17,7 +14,7 @@ data class Obstacle(
     var x: Float,
     var y: Float,
     var targetID: Int,
-    var facing: MutableState<Facing?> = mutableStateOf(null),
+    var facing: Facing? = null,// Make sure `Facing` is serializable as well
     var numberOnObstacle: Int? = null, // number on object
     val width: Int = 1,
     val height: Int = 1

@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mdpandroid.data.model.Modes
@@ -40,7 +39,7 @@ fun RunningScreen(
     sharedViewModel: SharedViewModel,
     sidebarViewModel: SidebarViewModel = viewModel(factory = SidebarViewModelFactory(sharedViewModel)),
     navController: NavHostController,
-    viewModel: BluetoothViewModel = hiltViewModel()
+    viewModel: BluetoothViewModel
 ) {
     val gridSize = 20
     val cellSize = 29
@@ -48,8 +47,7 @@ fun RunningScreen(
 
     val state by viewModel.state.collectAsState()
 
-    if (sharedViewModel.mode.value == Modes.IMAGERECOGNITION) header = "IMAGE RECOGNITION"
-    else header = "FASTEST PATH"
+    header = if (sharedViewModel.mode.value == Modes.IMAGERECOGNITION) "IMAGE RECOGNITION" else "FASTEST PATH"
 
 
     // Scaffold with SnackbarHost

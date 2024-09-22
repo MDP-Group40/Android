@@ -22,15 +22,17 @@ fun InformationDisplay(
 ){
     val carPosition by viewModel.car
     val obstacles = viewModel.obstacles
+    val targets = viewModel.target
     Row(
         modifier = Modifier
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,  // Ensure equal spacing between columns
+        horizontalArrangement = Arrangement.Start,  // Ensure equal spacing between columns
         verticalAlignment = Alignment.CenterVertically  // Align at the center vertically
     ) {
 
         Column(
-            modifier = Modifier,
+            modifier = Modifier
+                .weight(0.3f),
             verticalArrangement = Arrangement.Center
         ) {
             // Display car information
@@ -45,15 +47,14 @@ fun InformationDisplay(
             }
         }
         Column(
-            modifier = Modifier,
+            modifier = Modifier.weight(0.3f),
             verticalArrangement = Arrangement.Center
         ) {
             Text(text = "|")
             Text(text = "|")
-            Text(text = "|")
         }
         Column(
-            modifier = Modifier
+            modifier = Modifier.weight(0.3f)
         ){
             DisplayStyle(text = "NUMBER OF OBSTACLES: ${obstacles.size}")
 
@@ -75,5 +76,21 @@ fun InformationDisplay(
                 }
             }
         }
+
+
+        // }
+
+        /* item {
+                Text(text = "Grid Information: Number of Obstacles: ${obstacles.size}")
+                Spacer(modifier = Modifier.height(8.dp)) // Add some space between items
+                Text(text = "Obstacles:")
+            }
+
+            items(obstacles.size) { index ->
+                val obstacle = obstacles[index]
+                Text(text = "  $index: Position (X: ${obstacle.x}, Y: ${obstacle.y}), Facing: ${obstacle.facing}")
+            }*/
+
+
     }
 }
