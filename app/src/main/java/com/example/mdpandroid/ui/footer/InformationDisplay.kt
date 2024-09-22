@@ -70,7 +70,7 @@ fun InformationDisplay(
                     val reversedIndex = obstacles.size - 1 - index
                     val obstacle = obstacles[reversedIndex]
                     val num = reversedIndex + 1
-                    val facing = obstacle.facing?.value ?: "UNKNOWN"  // Dereference MutableState for Facing
+                    val facing = obstacle.facing?: "UNKNOWN"  // Dereference MutableState for Facing
 
                     DisplayStyle(text = "  $num:(X: ${obstacle.x}, Y: ${obstacle.y}) - $facing", )
                 }

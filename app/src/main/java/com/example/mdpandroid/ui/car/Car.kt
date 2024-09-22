@@ -25,10 +25,10 @@ fun Car(viewModel: SharedViewModel, cellSize: Int) {
     // Only render if the car is not null
     carPosition?.let { car ->
         val cell = cellSize.dp
-
         // Calculate the offset in Dp using density
         val offsetX = ((car.x - 1) * cell.value).dp
-        val offsetY = ((car.y - 1.5) * cell.value).dp
+        val flippedY = 20 - car.y
+        val offsetY = ((flippedY- 1.5) * cell.value).dp
 
         Box(
 

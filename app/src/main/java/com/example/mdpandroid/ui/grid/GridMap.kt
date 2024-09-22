@@ -18,7 +18,7 @@ fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int) {
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        for (y in 0 until gridSize) {
+        for (y in gridSize - 1 downTo 0) {
             Row {
                 for (x in 0 until gridSize) {
                     val obstacle = viewModel.getObstacleAt(x.toFloat(), y.toFloat())
