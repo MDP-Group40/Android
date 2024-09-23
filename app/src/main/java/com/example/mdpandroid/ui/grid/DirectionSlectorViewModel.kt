@@ -24,13 +24,6 @@ class DirectionSelectorViewModel(
     // Original facing before any changes, to revert if necessary
     private var originalFacing: Facing? by mutableStateOf(null)
 
-    // Initialize facing selection with the original facing direction
-    private fun startFacingSelection(initialFacing: Facing?) {
-        originalFacing = initialFacing
-        currentFacing = initialFacing
-        Log.d("DirectionSelectorVM", "Started facing selection with initial facing: $initialFacing")
-    }
-
     // Handle the movement buttons for direction selection
     override fun handleButtonUp() {
         currentFacing = Facing.NORTH
@@ -85,13 +78,22 @@ class DirectionSelectorViewModel(
         Log.d("DirectionSelectorVM", "Stop movement triggered")
     }
 
-    // Start editing an obstacle's facing
     fun startEditingObstacleFacing(x: Float, y: Float) {
+        // Retrieve the obstacle at the selected position and start editing its facing
+        val obstacle = sidebarViewModel.getObstacleAt(x, y)
         editingObstaclePosition = Pair(x, y)
+
         sharedViewModel.gameControlMode.value = GameControlMode.FACING
-        startFacingSelection(sidebarViewModel.getObstacleAt(x,y)?.facing)
+        startFacingSelection(obstacle?.facing)  // Pass the specific obstacle's facing
         Log.d("DirectionSelectorVM", "Started editing obstacle facing at ($x, $y)")
     }
+
+    private fun startFacingSelection(initialFacing: Facing?) {
+        originalFacing = initialFacing
+        currentFacing = initialFacing
+        Log.d("DirectionSelectorVM", "Started facing selection with initial facing: $initialFacing")
+    }
+
 
     // Stop editing the obstacle
     private fun stopEditingObstacleFacing() {

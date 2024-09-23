@@ -8,7 +8,12 @@ import androidx.compose.ui.unit.dp
 import com.example.mdpandroid.ui.sidebar.SidebarViewModel
 
 @Composable
-fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int, directionSelectorViewModel: DirectionSelectorViewModel) {
+fun GridMap(
+    viewModel: SidebarViewModel,
+    gridSize: Int,
+    cellSize: Int,
+    directionSelectorViewModel: DirectionSelectorViewModel
+) {
 
     Column(
         modifier = Modifier
@@ -25,6 +30,8 @@ fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int, direction
                     val obstacle = viewModel.getObstacleAt(x.toFloat(), transformedY.toFloat())
 
                     GridCell(
+                        x = x.toFloat(),
+                        y = transformedY.toFloat(),
                         cellSize = cellSize,
                         isObstacle = viewModel.isObstaclePosition(x.toFloat(), transformedY.toFloat()),
                         isTarget = viewModel.isTargetPosition(x.toFloat(), transformedY.toFloat()),
@@ -42,11 +49,8 @@ fun GridMap(viewModel: SidebarViewModel, gridSize: Int, cellSize: Int, direction
                                 } else {
                                     viewModel.addTarget(x.toFloat(), transformedY.toFloat())
                                 }
-                            }
-                        },
-                        onLongPress = {
-                            // Trigger enlargement on long press
-                            if (!viewModel.isAddingTarget && !viewModel.isAddingObstacle) {
+                            } else if (!viewModel.isAddingTarget && !viewModel.isAddingObstacle && (viewModel.getObstacleAt(x.toFloat(), transformedY.toFloat()) != null)) {
+                                // Trigger enlargement on long press
                                 directionSelectorViewModel.startEditingObstacleFacing(
                                     x.toFloat(),
                                     transformedY.toFloat()

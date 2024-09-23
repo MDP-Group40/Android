@@ -17,11 +17,12 @@ import com.example.mdpandroid.data.model.Facing
 
 @Composable
 fun GridCell(
+    x : Float,
+    y : Float,
     cellSize: Int,
     isObstacle: Boolean,
     isTarget: Boolean,
     onClick: () -> Unit,
-    onLongPress: () -> Unit,
     numberOnObstacle: Int?,
     facing: Facing?,
     targetID: Int? = null,
@@ -38,10 +39,6 @@ fun GridCell(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { onClick() },
-                    onLongPress = {
-                        Log.d("GridCell", "Long press detected at obstacle: $targetID")
-                        onLongPress()  // Call the onLongPress that triggers the ViewModel state change
-                    }
                 )
             },
         contentAlignment = Alignment.Center
@@ -60,7 +57,9 @@ fun GridCell(
                 initialFacing = facing,
                 isEditing = isEditing,
                 viewModel = directionSelectorViewModel,
-                onFacingChange = onFacingChange
+                onFacingChange = onFacingChange,
+                x = x,
+                y = y
             )
         } else if (isTarget) {
             Target(cellSize = cellSize)
