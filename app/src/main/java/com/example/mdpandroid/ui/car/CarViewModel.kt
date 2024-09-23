@@ -173,11 +173,13 @@ class CarViewModel(
 
         // Rounding the new position to 2 decimal places using Locale.US
         val roundedX = String.format(Locale.US, "%.1f", car.x + deltaX).toFloat()
-        val roundedY = String.format(Locale.US, "%.1f", car.y - deltaY).toFloat()
+        val roundedY = String.format(Locale.US, "%.1f", car.y + deltaY).toFloat()
+        val roundTransformY = String.format(Locale.US, "%.1f", car.transformY - deltaY).toFloat()
 
         return car.copy(
             x = roundedX,
-            y = roundedY
+            y = roundedY,
+            transformY = roundTransformY
         )
     }
 

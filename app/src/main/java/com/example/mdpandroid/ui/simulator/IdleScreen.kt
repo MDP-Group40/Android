@@ -22,11 +22,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.mdpandroid.data.model.GameControlMode
 import com.example.mdpandroid.ui.buttons.GameControls
 import com.example.mdpandroid.ui.car.Car
 import com.example.mdpandroid.ui.car.CarViewModel
 import com.example.mdpandroid.ui.car.CarViewModelFactory
 import com.example.mdpandroid.ui.footer.InformationDisplay
+import com.example.mdpandroid.ui.grid.DirectionSelectorViewModel
+import com.example.mdpandroid.ui.grid.DirectionSelectorViewModelFactory
 import com.example.mdpandroid.ui.grid.GridMap
 import com.example.mdpandroid.ui.header.StatusDisplay
 import com.example.mdpandroid.ui.shared.SharedViewModel
@@ -41,9 +44,9 @@ fun IdleScreen(
     sharedViewModel: SharedViewModel,
     carViewModel: CarViewModel = viewModel(factory = CarViewModelFactory(sharedViewModel)),
     sidebarViewModel: SidebarViewModel = viewModel(factory = SidebarViewModelFactory(sharedViewModel)),
+    directionSelectorViewModel: DirectionSelectorViewModel = viewModel(factory = DirectionSelectorViewModelFactory(sidebarViewModel, sharedViewModel)),
     navController: NavHostController
 ) {
-    val gridSize = 20
     val cellSize = 24
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -68,7 +71,6 @@ fun IdleScreen(
                 modifier = Modifier
                     .weight(1f)
             ) {
-
                 Column(modifier = Modifier.weight(5f)) {
                     Box(
                         modifier = Modifier
@@ -76,9 +78,17 @@ fun IdleScreen(
                             .fillMaxSize()
                     ) {
                         // Draw the grid
-                        GridMap(sidebarViewModel, gridSize, cellSize)
+                        GridMap(
+                            viewModel = sidebarViewModel,
+                            gridSize = sharedViewModel.gridSize,
+                            cellSize = cellSize,
+                            directionSelectorViewModel = directionSelectorViewModel
+                        )
                         // Overlay the car on top of the grid
-                        Car(sharedViewModel, cellSize)
+                        Car(
+                            viewModel = sharedViewModel,
+                            cellSize = cellSize
+                        )
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
@@ -92,14 +102,13 @@ fun IdleScreen(
             InformationDisplay(viewModel = sharedViewModel)
             // Control buttons
             GameControls(
-                carViewModel,
-                navController,
-                sharedViewModel,
-                Modifier
+                viewModel = if (sharedViewModel.gameControlMode.value === GameControlMode.DRIVING) carViewModel else directionSelectorViewModel,
+                navController = navController,
+                sharedViewModel =  sharedViewModel,
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
             )
-
         }
     }
 

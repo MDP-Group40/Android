@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.example.mdpandroid.data.model.Car
+import com.example.mdpandroid.data.model.GameControlMode
 import com.example.mdpandroid.data.model.Modes
 import com.example.mdpandroid.data.model.Obstacle
 import com.example.mdpandroid.data.model.Orientation
@@ -16,7 +17,7 @@ import javax.inject.Inject
 class SharedViewModel @Inject constructor() : ViewModel() {
 
     // Shared grid size
-    val gridSize = 20f
+    val gridSize = 20
 
     // Shared car state
     val car = mutableStateOf<Car?>(null)  // Now the car can be null
@@ -32,6 +33,8 @@ class SharedViewModel @Inject constructor() : ViewModel() {
 
     // Mode set
     val mode = mutableStateOf(Modes.IDLE)
+
+    val gameControlMode = mutableStateOf(GameControlMode.DRIVING)
 
     val drivingMode = mutableStateOf(false)
 
@@ -57,7 +60,8 @@ class SharedViewModel @Inject constructor() : ViewModel() {
 
     fun setCar(positionX: Float, positionY: Float, orientation: Orientation = Orientation.N) {
         // Create a new Car instance
-        val newCar = Car(x = positionX, y = positionY, orientation = orientation)
+
+        val newCar = Car(x = positionX, y = positionY, transformY = gridSize - positionY, orientation = orientation)
 
         // Set the rotation angle based on the orientation
         newCar.setRotationAngleBasedOnOrientation()

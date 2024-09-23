@@ -34,10 +34,6 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
     var isAddingTarget by mutableStateOf(false)
         private set
 
-    // Add a mutable state to track the obstacle being edited
-    var editingObstaclePosition by mutableStateOf<Pair<Float, Float>?>(null)
-        private set
-
     // Toggle modes
     fun toggleMode(newMode: Modes) {
         sharedViewModel.mode.value = if (sharedViewModel.mode.value == newMode) Modes.IDLE else newMode
@@ -45,43 +41,6 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
 
     fun toggleDrivingMode() {
         sharedViewModel.drivingMode.value = !sharedViewModel.drivingMode.value
-    }
-
-    // Start editing an obstacle's facing
-    fun startEditingObstacleFacing(x: Float, y: Float) {
-        // Set the editing obstacle position to the clicked obstacle
-        editingObstaclePosition = Pair(x, y)
-        Log.d("SidebarViewModel", "Editing obstacle facing at ($x, $y)")
-    }
-
-    // Stop editing the obstacle (call this after the user finishes dragging or cancels)
-    private fun stopEditingObstacleFacing() {
-        editingObstaclePosition = null
-        Log.d("SidebarViewModel", "Stopped editing obstacle")
-    }
-
-    // Check if an obstacle is being edited (this helps the UI know whether to enlarge an obstacle)
-    fun isEditingObstacle(x: Float, y: Float): Boolean {
-        return editingObstaclePosition?.let { it.first == x && it.second == y } ?: false
-    }
-
-    fun updateObstacleFacing(x: Float, y: Float, dx: Float, dy: Float) {
-        val obstacle = getObstacleAt(x, y) ?: return
-
-        // Determine the direction of the drag based on the larger movement
-        val newFacing = when {
-            kotlin.math.abs(dx) > kotlin.math.abs(dy) -> { // Greater horizontal movement
-                if (dx > 0) Facing.EAST else Facing.WEST
-            }
-            kotlin.math.abs(dy) > kotlin.math.abs(dx) -> { // Greater vertical movement
-                if (dy > 0) Facing.SOUTH else Facing.NORTH
-            }
-            else -> obstacle.facing // Keep the existing facing if no significant movement
-        }
-
-        obstacle.facing = newFacing // Update the state
-        stopEditingObstacleFacing()
-        Log.d("SidebarViewModel", "Updated obstacle facing at ($x, $y) to $newFacing")
     }
 
     fun isObstaclePosition(x: Float, y: Float): Boolean {
@@ -102,7 +61,14 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
         Log.d("SimulatorViewModel", "Obstacle adding mode: $isAddingObstacle")
     }
 
+    fun updateObstacleFacingWithFacing(x: Float, y: Float, newFacing: Facing?) {
+        val obstacle = getObstacleAt(x, y) ?: return
+        obstacle.facing = newFacing // Update the facing direction
+        Log.d("SidebarViewModel", "Updated obstacle facing at ($x, $y) to $newFacing")
+    }
+
     fun addObstacle(x: Float, y: Float) {
+
         viewModelScope.launch(Dispatchers.Default) {
             if (x >= 0f && x < gridSize && y >= 0f && y < gridSize && !isObstaclePosition(x, y) && !isCarPosition(x, y) && !isTargetPosition(x, y)) {
                 // Perform the add operation in the background
@@ -110,7 +76,7 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
 
                 // Reassign IDs if needed
                 withContext(Dispatchers.Main) {
-                    Log.d("SimulatorViewModel", "Obstacle added at ($x, $y) TargetID: $sharedViewModel.nextTargetId")
+                    Log.d("SimulatorViewModel", "Obstacle added at ($x, $y) TargetID: ${sharedViewModel.nextTargetId}")
                 }
                 sharedViewModel.nextTargetId++
             } else {
@@ -121,11 +87,11 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
         }
     }
 
-
     fun addTarget(x: Float, y: Float) {
+
         if (x >= 0f && x < gridSize && y >= 0f && y < gridSize && !isObstaclePosition(x, y) && !isCarPosition(x, y) && !isTargetPosition(x,y)) {
             target.add(Target(x, y))
-            Log.d("SimulatorViewModel", "Target added at ($x, $y)")
+            Log.d("SimulatorViewModel", "Target added at ($x, $y")
         } else {
             Log.d("SimulatorViewModel", "Failed to add Target at ($x, $y): Position occupied or out of bounds")
         }
@@ -133,6 +99,7 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
 
     fun removeObstacle(x: Float, y: Float) {
         viewModelScope.launch(Dispatchers.Default) {
+
             // Perform the removal in the background
             obstacles.removeAll { it.x == x && it.y == y }
 
@@ -147,8 +114,19 @@ class SidebarViewModel(private val sharedViewModel: SharedViewModel) : ViewModel
     }
 
     fun removeTarget(x: Float, y: Float) {
-        target.removeAll { it.x == x && it.y == y }
-        Log.d("SimulatorViewModel", "Target removed at ($x, $y)")
+        viewModelScope.launch(Dispatchers.Default) {
+
+            // Perform the removal in the background
+            target.removeAll { it.x == x && it.y == y }
+
+            // Reassign IDs after removal
+            reassignTargetIDs()
+
+            // Log the result on the main thread
+            withContext(Dispatchers.Main) {
+                Log.d("SimulatorViewModel", "Target removed at ($x, $y)")
+            }
+        }
     }
 
     fun getObstacleAt(x: Float, y: Float): Obstacle? {
