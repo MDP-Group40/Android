@@ -1,5 +1,6 @@
 package com.example.mdpandroid.ui.shared
 
+import android.util.Log
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -68,6 +69,19 @@ class SharedViewModel @Inject constructor() : ViewModel() {
 
         // Update the car state with the new Car instance
         car.value = newCar
+    }
+
+    fun setNumberOnObstacle(targetID: Int, numberOnObstacle: Int) {
+        // Find the obstacle with the given targetID
+        val obstacle = obstacles.find { it.targetID == targetID }
+
+        // If the obstacle is found, update the numberOnObstacle
+        if (obstacle != null) {
+            obstacle.numberOnObstacle = numberOnObstacle
+            Log.d("SharedViewModel", "Set numberOnObstacle to $numberOnObstacle for obstacle with targetID: $targetID")
+        } else {
+            Log.d("SharedViewModel", "Obstacle with targetID $targetID not found")
+        }
     }
 
     // Reset car position and orientation

@@ -38,7 +38,6 @@ fun AppNavHost(navController: NavHostController) {
     }
 }
 
-
 fun NavHostController.safeNavigate(route: String) {
     // Check if the current destination is the same as the target route
     if (this.currentDestination?.route != route) {

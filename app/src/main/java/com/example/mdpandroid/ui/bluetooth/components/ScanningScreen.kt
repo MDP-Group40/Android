@@ -171,7 +171,6 @@ fun BluetoothDeviceList(
     }
 }
 
-
 @Composable
 fun DeviceItem(
     device: BluetoothDevice,
@@ -230,7 +229,6 @@ fun DeviceItem(
         }
     }
 }
-
 
 @Composable
 fun CustomStyledButton(onClick: () -> Unit, text: String) {

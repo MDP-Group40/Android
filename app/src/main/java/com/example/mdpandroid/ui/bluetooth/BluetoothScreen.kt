@@ -16,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mdpandroid.ui.bluetooth.components.ChatScreen
@@ -58,7 +57,7 @@ fun ConnectingTab(
                     onToggleBluetooth = { viewModel.toggleBluetooth() },
                     onStartScan = { viewModel.startScan() },
                     onStopScan = { viewModel.stopScan() },
-                    onDeviceClick = { device -> viewModel.connectToDevice(device) },
+                    onDeviceClick = { device -> viewModel.connectToDevice(device, sharedViewModel) },
                     connectToLastDevice = { viewModel.reconnectToLastPairedDevice() },
                     modifier = Modifier.verticalScroll(rememberScrollState()) // Make it scrollable
                 )
@@ -75,8 +74,6 @@ fun ConnectingTab(
             )
         }
     }
-
-
 }
 
 @Composable
@@ -86,7 +83,7 @@ fun MessagesTab(navController: NavHostController, viewModel: BluetoothViewModel)
     // Log the content of the messages whenever the state changes
     Log.d("BluetoothUiState", "Messages count: ${state.messages.size}")
     state.messages.forEach { message ->
-        Log.d("BluetoothUiState", "Message from ${message.senderName}: ${message.toString()}")
+        Log.d("BluetoothUiState", "Message from ${message.senderName}: $message")
     }
 
     Surface(

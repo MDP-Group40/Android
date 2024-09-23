@@ -67,3 +67,16 @@ data class MovementMessage(
     }
 }
 
+@Serializable
+@SerialName("image")
+data class ImageMessage(
+    val targetId: Int,
+    val numberOnObstacle: Int,
+    override val senderName: String,
+    override val isFromLocalUser: Boolean
+) : BluetoothMessage() {
+    override fun toString(): String {
+        return "IMAGE MESSAGE received: targetId = $targetId, numberOnObstacle = $numberOnObstacle"
+    }
+}
+

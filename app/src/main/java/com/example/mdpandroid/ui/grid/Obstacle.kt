@@ -67,11 +67,21 @@ fun Obstacle(
         val painter: Painter = painterResource(id = R.drawable.item)
         Image(painter = painter, contentDescription = null, modifier = Modifier.fillMaxSize())
 
-        BasicText(
-            text = numberOnObstacle?.toString() ?: targetID.toString(),
-            style = TextStyle(color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
-            modifier = Modifier.padding(top = 9.dp)
-        )
+        if (numberOnObstacle == null){
+            BasicText(
+                text = targetID.toString(),
+                style = TextStyle(color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Normal, textAlign = TextAlign.Center),
+                modifier = Modifier.padding(top = 9.dp)
+            )
+        }
+        else{
+            BasicText(
+                    text = numberOnObstacle.toString(),
+                    style = TextStyle(color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
+                    modifier = Modifier.padding(top = 9.dp)
+                )
+        }
+
     }
 
     // Listen for changes in the ViewModel and update facing state
