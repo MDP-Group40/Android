@@ -31,8 +31,11 @@ fun ABButton(viewModel: ControlViewModel,
         if (sharedViewModel.drivingMode.value){  // Check if drivingMode is true
             val message = sharedViewModel.car.value?.let {
                 MovementMessage(
-                    car = it,
+                    nextX = it.x,
+                    nextY = it.y,
+                    nextOrientation = "N",
                     direction = direction,
+                    distance = 0f,
                     senderName = "Android Device",
                     isFromLocalUser = true
                 )

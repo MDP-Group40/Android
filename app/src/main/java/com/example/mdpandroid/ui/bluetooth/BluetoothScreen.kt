@@ -28,14 +28,14 @@ import com.example.mdpandroid.ui.shared.SharedViewModel
 @Composable
 fun ConnectingTab(
     navController: NavHostController,
-    viewModel: BluetoothViewModel,
+    bluetoothViewModel: BluetoothViewModel,
     sharedViewModel: SharedViewModel,
     carViewModel: CarViewModel = viewModel(
         factory = CarViewModelFactory(sharedViewModel)
     ),) {
-    val state by viewModel.state.collectAsState()
-    val isBluetoothOn by viewModel.isBluetoothEnabled.collectAsState() // Bluetooth ON/OFF state
-    val isScanning by viewModel.isScanning.collectAsState() // Scanning state
+    val state by bluetoothViewModel.state.collectAsState()
+    val isBluetoothOn by bluetoothViewModel.isBluetoothEnabled.collectAsState() // Bluetooth ON/OFF state
+    val isScanning by bluetoothViewModel.isScanning.collectAsState() // Scanning state
 
     Surface(
         modifier = Modifier
@@ -54,11 +54,15 @@ fun ConnectingTab(
                     state = state,
                     isBluetoothOn = isBluetoothOn,
                     isScanning = isScanning,
-                    onToggleBluetooth = { viewModel.toggleBluetooth() },
-                    onStartScan = { viewModel.startScan() },
-                    onStopScan = { viewModel.stopScan() },
-                    onDeviceClick = { device -> viewModel.connectToDevice(device, sharedViewModel) },
-                    connectToLastDevice = { viewModel.reconnectToLastPairedDevice() },
+                    onToggleBluetooth = { bluetoothViewModel.toggleBluetooth() },
+                    onStartScan = { bluetoothViewModel.startScan() },
+                    onStopScan = { bluetoothViewModel.stopScan() },
+                    onDeviceClick = { device -> bluetoothViewModel.connectToDevice(
+                        device = device,
+                        sharedViewModel = sharedViewModel,
+                        carViewModel = carViewModel
+                    )},
+                    connectToLastDevice = { bluetoothViewModel.reconnectToLastPairedDevice() },
                     modifier = Modifier.verticalScroll(rememberScrollState()) // Make it scrollable
                 )
             }

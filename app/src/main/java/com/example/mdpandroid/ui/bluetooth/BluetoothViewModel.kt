@@ -9,6 +9,8 @@ import com.example.mdpandroid.domain.BluetoothDeviceDomain
 import com.example.mdpandroid.domain.BluetoothMessage
 import com.example.mdpandroid.domain.ConnectionResult
 import com.example.mdpandroid.domain.ImageMessage
+import com.example.mdpandroid.domain.MovementMessage
+import com.example.mdpandroid.ui.car.CarViewModel
 import com.example.mdpandroid.ui.shared.SharedViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -97,7 +99,10 @@ open class BluetoothViewModel @Inject constructor(
         }
     }
 
-    fun connectToDevice(device: BluetoothDeviceDomain, sharedViewModel: SharedViewModel) {
+    fun connectToDevice(
+        device: BluetoothDeviceDomain,
+        sharedViewModel: SharedViewModel,
+        carViewModel: CarViewModel) {
         Log.d("BluetoothViewModel", "Starting connection to device: ${device.address}")
 
         _state.update {
@@ -156,7 +161,13 @@ open class BluetoothViewModel @Inject constructor(
 
                                         currentState.copy(messages = updatedMessages) // Properly update state with accumulated messages
                                     }
+
+                                    // see if message is regarding image
                                     handleReceivedImageMessage(result.message, sharedViewModel)
+
+                                    // see if message is regarding the robot movement
+                                    handleReceivedMovementMessage(result.message, carViewModel)
+
                                 }
                             }
                         }
@@ -336,11 +347,17 @@ open class BluetoothViewModel @Inject constructor(
 
             // Pass the targetID and numberOnObstacle to the sharedViewModel
             sharedViewModel.setNumberOnObstacle(message.targetId, message.numberOnObstacle)
-        } else {
-            // Do nothing if the message is not an ImageMessage
-            Log.d("BluetoothViewModel", "Received non-ImageMessage, ignoring: $message")
         }
     }
 
+    private fun handleReceivedMovementMessage(message: BluetoothMessage, carViewModel: CarViewModel) {
+        // Check if the message is an instance of ImageMessage
+        if (message is MovementMessage) {
+            // Log the received message
+            Log.d("BluetoothViewModel", "Received MovementMessage: $message")
 
+            // Pass the direction and distance to the carViewModel
+            carViewModel.movementViaBluetooth(action = message.direction, distance = message.distance, nextX = message.nextX, nextY =  message.nextY, nextOrientation = message.nextOrientation)
+        }
+    }
 }

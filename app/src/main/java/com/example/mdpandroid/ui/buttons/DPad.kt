@@ -16,7 +16,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mdpandroid.R
-import com.example.mdpandroid.domain.BluetoothMessage
 import com.example.mdpandroid.domain.MovementMessage
 import com.example.mdpandroid.ui.bluetooth.BluetoothViewModel
 import com.example.mdpandroid.ui.shared.SharedViewModel
@@ -35,8 +34,11 @@ fun DPad(
         if (sharedViewModel.drivingMode.value){  // Check if drivingMode is true
             val message = sharedViewModel.car.value?.let {
                 MovementMessage(
-                    car = it,
+                    nextX = it.x,
+                    nextY = it.y,
+                    nextOrientation = "N",
                     direction = direction,
+                    distance = 0f,
                     senderName = "Android Device",
                     isFromLocalUser = true
                 )
