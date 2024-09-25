@@ -54,7 +54,7 @@ class AndroidBluetoothController(
 
     private var dataTransferService: BluetoothDataTransferService? = null
 
-    private var lastConnectedDevice: BluetoothDeviceDomain? = null  // Track the last paired device
+    override var lastConnectedDevice: BluetoothDeviceDomain? = null  // Track the last paired device
 
     private val _isConnected = MutableStateFlow(false)
     override val isConnected: StateFlow<Boolean>
@@ -271,7 +271,6 @@ class AndroidBluetoothController(
             closeConnection()
         }.flowOn(Dispatchers.IO)
     }
-
 
     // Method to start a connection with retry logic
     override suspend fun reconnectToLastDevice(retries: Int): ConnectionResult {

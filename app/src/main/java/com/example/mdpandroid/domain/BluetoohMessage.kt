@@ -2,6 +2,7 @@ package com.example.mdpandroid.domain
 
 import com.example.mdpandroid.data.model.Car
 import com.example.mdpandroid.data.model.Obstacle
+import com.example.mdpandroid.data.model.Orientation
 import com.example.mdpandroid.data.model.Target
 import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.SerialName
@@ -57,13 +58,29 @@ data class StartMessage(
 @Serializable
 @SerialName("movement")
 data class MovementMessage(
-    val car: Car,
+    val nextX: Float,
+    val nextY: Float,
+    val nextOrientation: String,
     val direction: String,
+    val distance: Float,
     override val senderName: String,
     override val isFromLocalUser: Boolean
 ) : BluetoothMessage() {
     override fun toString(): String {
-        return "Car = (${car.x}, ${car.y}), Direction = $direction"
+        return "New Car Coord = ($nextX, $nextY), Next Facing = $nextOrientation Direction to move = $direction, Distance to move =$distance"
+    }
+}
+
+@Serializable
+@SerialName("image")
+data class ImageMessage(
+    val targetId: Int,
+    val numberOnObstacle: Int,
+    override val senderName: String,
+    override val isFromLocalUser: Boolean
+) : BluetoothMessage() {
+    override fun toString(): String {
+        return "IMAGE MESSAGE received: targetId = $targetId, numberOnObstacle = $numberOnObstacle"
     }
 }
 

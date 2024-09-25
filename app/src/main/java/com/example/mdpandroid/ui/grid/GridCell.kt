@@ -1,8 +1,8 @@
 package com.example.mdpandroid.ui.grid
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -18,17 +18,18 @@ import com.example.mdpandroid.data.model.Facing
 
 @Composable
 fun GridCell(
+    x : Float,
+    y : Float,
     cellSize: Int,
     isObstacle: Boolean,
     isTarget: Boolean,
     onClick: () -> Unit,
-    onLongPress: () -> Unit,
-    onDrag: (Float, Float) -> Unit,
     numberOnObstacle: Int?,
     facing: Facing?,
     targetID: Int? = null,
     isEditing: Boolean,
-    onFacingChange: (Facing?) -> Unit // Callback to propagate facing changes
+    onFacingChange: (Facing?) -> Unit,
+    directionSelectorViewModel: DirectionSelectorViewModel
 ) {
     val painter = painterResource(id = R.drawable.gridcell)
 
@@ -39,13 +40,7 @@ fun GridCell(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { onClick() },
-                    onLongPress = { onLongPress() }
                 )
-            }
-            .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
-                    onDrag(dragAmount.x, dragAmount.y)
-                }
             },
         contentAlignment = Alignment.Center
     ) {
@@ -55,18 +50,21 @@ fun GridCell(
             modifier = Modifier
         )
         if (isObstacle && targetID != null) {
+            // Pass onDrag to Obstacle
             Obstacle(
                 cellSize = cellSize,
                 targetID = targetID,
                 numberOnObstacle = numberOnObstacle,
-                initialFacing = facing, // Pass the initial facing direction
+                initialFacing = facing,
                 isEditing = isEditing,
-                onFacingChange = onFacingChange // Handle facing changes
+                viewModel = directionSelectorViewModel,
+                onFacingChange = onFacingChange,
+                x = x,
+                y = y
             )
         } else if (isTarget) {
             Target(cellSize = cellSize)
         }
     }
 }
-
 

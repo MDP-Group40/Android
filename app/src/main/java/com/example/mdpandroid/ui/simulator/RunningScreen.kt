@@ -27,6 +27,8 @@ import com.example.mdpandroid.data.model.Modes
 import com.example.mdpandroid.ui.bluetooth.BluetoothViewModel
 import com.example.mdpandroid.ui.bluetooth.components.UpdatesList
 import com.example.mdpandroid.ui.car.Car
+import com.example.mdpandroid.ui.grid.DirectionSelectorViewModel
+import com.example.mdpandroid.ui.grid.DirectionSelectorViewModelFactory
 import com.example.mdpandroid.ui.grid.GridMap
 import com.example.mdpandroid.ui.header.StatusDisplay
 import com.example.mdpandroid.ui.safeNavigate
@@ -39,16 +41,15 @@ fun RunningScreen(
     sharedViewModel: SharedViewModel,
     sidebarViewModel: SidebarViewModel = viewModel(factory = SidebarViewModelFactory(sharedViewModel)),
     navController: NavHostController,
-    viewModel: BluetoothViewModel
+    viewModel: BluetoothViewModel,
+    directionSelectorViewModel: DirectionSelectorViewModel = viewModel(factory = DirectionSelectorViewModelFactory(sidebarViewModel, sharedViewModel))
 ) {
     val gridSize = 20
     val cellSize = 29
-    var header = ""
 
     val state by viewModel.state.collectAsState()
 
-    header = if (sharedViewModel.mode.value == Modes.IMAGERECOGNITION) "IMAGE RECOGNITION" else "FASTEST PATH"
-
+    val header: String = if (sharedViewModel.mode.value == Modes.IMAGERECOGNITION) "IMAGE RECOGNITION" else "FASTEST PATH"
 
     // Scaffold with SnackbarHost
 
@@ -88,9 +89,16 @@ fun RunningScreen(
                         .fillMaxSize()
                 ) {
                     // Draw the grid
-                    GridMap(sidebarViewModel, gridSize, cellSize)
+                    GridMap(
+                        viewModel = sidebarViewModel,
+                        gridSize =  gridSize,
+                        cellSize = cellSize,
+                        directionSelectorViewModel = directionSelectorViewModel
+                    )
                     // Overlay the car on top of the grid
-                    Car(sharedViewModel, cellSize)
+                    Car(viewModel = sharedViewModel,
+                        cellSize = cellSize
+                    )
                 }
             }
         }

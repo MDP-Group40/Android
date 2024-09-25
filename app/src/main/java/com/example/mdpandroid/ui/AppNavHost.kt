@@ -25,7 +25,7 @@ fun AppNavHost(navController: NavHostController) {
         }
         composable("bluetooth") {
             sharedViewModel.resetSnackbar()
-            ConnectingTab(navController = navController, sharedViewModel = sharedViewModel, viewModel = bluetoothViewModel) // Navigate to connect tab
+            ConnectingTab(navController = navController, sharedViewModel = sharedViewModel, bluetoothViewModel = bluetoothViewModel) // Navigate to connect tab
         }
         composable("message") {
             sharedViewModel.resetSnackbar()
@@ -37,7 +37,6 @@ fun AppNavHost(navController: NavHostController) {
         }
     }
 }
-
 
 fun NavHostController.safeNavigate(route: String) {
     // Check if the current destination is the same as the target route

@@ -19,6 +19,7 @@ data class Car(
     val height: Float = 3f,
     var x: Float,  // x-coordinate of the center of the car
     var y: Float,  // y-coordinate of the center of the car
+    var transformY: Float, // use to render the car in terms of origin being bottom left
     var orientation: Orientation,
     var rotationAngle: Float = 0f // Track the current rotation angle
 ) {

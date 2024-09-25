@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.mdpandroid.data.model.Car
 import com.example.mdpandroid.data.model.Orientation
+import com.example.mdpandroid.domain.MovementMessage
 import com.example.mdpandroid.ui.buttons.ControlViewModel
 import com.example.mdpandroid.ui.shared.SharedViewModel
 import kotlinx.coroutines.Dispatchers
@@ -11,7 +12,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.LinkedList
 import java.util.Locale
+import java.util.Queue
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -37,40 +40,44 @@ class CarViewModel(
     // Job for managing the loop
     private var movementJob: Job? = null
 
+    // Queue to store movement commands
+    private val movementQueue: Queue<MovementMessage> = LinkedList()
+    private var isProcessingQueue = false // To track if the queue is being processed
+
 
     // Abstract methods from ControlViewModel, now implemented in CarViewModel
     override fun handleButtonUp() {
-        resetAllMovementFlags() // Ensure only forward movement is active
-        isMovingForward = true
-        startMovementLoop()
+        Log.d("CarViewModel", "handleButtonUp is called")
+        startMovement({ isMovingForward = true })
     }
 
     override fun handleButtonDown() {
-        resetAllMovementFlags() // Ensure only backward movement is active
-        isMovingBackward = true
-        startMovementLoop()
+        Log.d("CarViewModel", "handleButtonDown is called")
+        startMovement({ isMovingBackward = true })
     }
 
     override fun handleButtonLeft() {
-        resetAllMovementFlags() // Ensure only left turning is active
-        isTurningLeft = true
-        startMovementLoop()
+        Log.d("CarViewModel", "handleButtonLeft is called")
+        startMovement({ isTurningLeft = true })
     }
 
     override fun handleButtonRight() {
-        resetAllMovementFlags() // Ensure only right turning is active
-        isTurningRight = true
-        startMovementLoop()
+        Log.d("CarViewModel", "handleButtonRight is called")
+        startMovement({ isTurningRight = true })
     }
 
     override fun handleButtonA() {
         // If button A is used for moving forward, this can call handleButtonUp
         handleButtonUp()
+
+//        movementViaBluetooth("Forward left", 20f)
     }
 
     override fun handleButtonB() {
         // If button B is used for moving backward, this can call handleButtonDown
         handleButtonDown()
+
+//        movementViaBluetooth("Backward left", 20f)
     }
 
     override fun handleStopMovement() {
@@ -85,53 +92,58 @@ class CarViewModel(
         isTurningRight = false
     }
 
+    private fun startMovement(
+        setMovementFlag: () -> Unit,
+        angleChange: Float = 22.5f
+    ) {
+        // Reset all flags and set the appropriate movement flag
+        resetAllMovementFlags()
+        setMovementFlag()
+
+        // Launch a coroutine to manage the movement
+        viewModelScope.launch {
+            startMovementLoop(angleChange)
+            delay(150L)
+        }
+    }
+
     private fun startMovementLoop(angleChange: Float = 22.5f) {
-        if (movementJob == null && car.value != null) {
+        // If a movement job already exists, cancel it before starting a new one
+        movementJob?.cancel()
+
+        // Ensure the car exists before starting the movement job
+        car.value?.let { currentCar ->
             movementJob = viewModelScope.launch {
-                while (true) {
-                    car.value?.let { currentCar ->
-                        Log.d("MovementLoop", "Car position: (${currentCar.x}, ${currentCar.y}), Rotation: ${currentCar.rotationAngle}")
+                while (isMovingForward || isMovingBackward || isTurningLeft || isTurningRight) {
+                    Log.d("MovementLoop", "Car position: (${currentCar.x}, ${currentCar.y}), Rotation: ${currentCar.rotationAngle}")
 
-                        // Move the calculations off the main thread
-                        val newPosition: Car? = withContext(Dispatchers.Default) {
-                            when {
-                                isMovingForward -> {
-                                    Log.d("MovementLoop", "Moving Forward")
-                                    moveForward(currentCar)
-                                }
-                                isTurningLeft -> {
-                                    Log.d("MovementLoop", "Turning Left")
-                                    rotateCar(currentCar, -angleChange)
-                                }
-                                isTurningRight -> {
-                                    Log.d("MovementLoop", "Turning Right")
-                                    rotateCar(currentCar, angleChange)
-                                }
-                                isMovingBackward -> {
-                                    Log.d("MovementLoop", "Moving Backward")
-                                    moveBackward(currentCar)
-                                }
-                                else -> null
-                            }
-                        }
-
-                        // Update car state on the main thread
-                        withContext(Dispatchers.Main) {
-                            if (newPosition != null) {
-                                car.value = newPosition
-                            }
-                        }
-
-                        // Check if any movement is still happening
-                        if (!isMovingForward && !isMovingBackward && !isTurningLeft && !isTurningRight) {
-                            stopMovementLoop()
+                    // Move the calculations off the main thread
+                    val newPosition: Car? = withContext(Dispatchers.Default) {
+                        when {
+                            isMovingForward -> moveForward(currentCar)
+                            isMovingBackward -> moveBackward(currentCar)
+                            isTurningLeft -> rotateCar(currentCar, -angleChange)
+                            isTurningRight -> rotateCar(currentCar, angleChange)
+                            else -> null
                         }
                     }
-                    delay(150L)  // This delay simulates the time between updates
+
+                    // Update car state on the main thread
+                    newPosition?.let {
+                        withContext(Dispatchers.Main) {
+                            car.value = it
+                        }
+                    }
+
+                    // Check if all movement flags are false and stop the loop
+                    if (!isMovingForward && !isMovingBackward && !isTurningLeft && !isTurningRight) {
+                        stopMovementLoop()
+                        break
+                    }
+
+                    delay(150L)  // Delay to simulate the time between updates
                 }
             }
-        } else {
-            stopMovementLoop()
         }
     }
 
@@ -173,11 +185,13 @@ class CarViewModel(
 
         // Rounding the new position to 2 decimal places using Locale.US
         val roundedX = String.format(Locale.US, "%.1f", car.x + deltaX).toFloat()
-        val roundedY = String.format(Locale.US, "%.1f", car.y - deltaY).toFloat()
+        val roundedY = String.format(Locale.US, "%.1f", car.y + deltaY).toFloat()
+        val roundTransformY = String.format(Locale.US, "%.1f", car.transformY - deltaY).toFloat()
 
         return car.copy(
             x = roundedX,
-            y = roundedY
+            y = roundedY,
+            transformY = roundTransformY
         )
     }
 
@@ -261,7 +275,6 @@ class CarViewModel(
         return isCollisionDetected
     }
 
-
     private fun getDimensionsForOrientation(orientation: Orientation): Pair<Float, Float> {
         return when (orientation) {
             Orientation.N, Orientation.S,Orientation.SSW,
@@ -313,4 +326,189 @@ class CarViewModel(
         }
     }
 
+    // Bluetooth Connection Movement
+
+    // Function to add movement commands to the queue
+    fun enqueueMovementMessage(message: MovementMessage) {
+        movementQueue.offer(message) // Add the message to the queue
+        processMovementQueue() // Start processing the queue if not already in progress
+    }
+
+    // Process the queue one command at a time
+    private fun processMovementQueue() {
+        if (isProcessingQueue || movementQueue.isEmpty()) return // If already processing or queue is empty, do nothing
+
+        isProcessingQueue = true // Set the flag to indicate we're processing the queue
+
+        viewModelScope.launch {
+            while (movementQueue.isNotEmpty()) {
+                val message = movementQueue.poll() // Get and remove the next command from the queue
+                if (message != null) {
+                    // Process the movement command
+                    Log.d("CarViewModel", "Processing MovementMessage: $message")
+                    movementViaBluetooth(
+                        action = message.direction,
+                        distance = message.distance,
+                        nextX = message.nextX,
+                        nextY = message.nextY,
+                        nextOrientation = message.nextOrientation
+                    )
+
+                    // Wait for movement to complete before processing the next command
+                    delay(1000L) // Adjust this delay based on movement time
+                }
+            }
+            isProcessingQueue = false // Mark the queue as processed once it's done
+        }
+    }
+
+    private fun movementViaBluetooth(
+        action: String,
+        distance:Float,
+        nextX: Float = 0f,
+        nextY: Float =0f,
+        nextOrientation: String = ""
+    ){
+
+        Log.d("CarViewModel", "action = $action, distance = $distance")
+        when (action){
+            "Forward" -> straightMovement(distance = distance, forward = true)
+            "Forward left" -> forwardLeft()
+            "Forward right" -> forwardRight()
+            "Backward" -> straightMovement(distance = distance, forward = false)
+            "Backward left" -> backwardLeft()
+            "Backward right" -> backwardRight()
+            else -> {
+                // do nothing
+            }
+        }
+        val nextOri: Orientation = when (nextOrientation){
+            "N" -> Orientation.N
+            "S" -> Orientation.S
+            "E" -> Orientation.E
+            "W" -> Orientation.W
+            else -> Orientation.N
+        }
+
+       car.value?.let { sharedViewModel.setCar(positionX = nextX, positionY = nextY, orientation = nextOri ) }
+    }
+
+    private fun straightMovement(distance: Float, forward: Boolean) {
+        val stepsToMove = (distance / 5).toInt()
+
+        if (stepsToMove > 0) {
+            viewModelScope.launch {
+                for (i in 0 until stepsToMove) {
+                    if (forward) {
+                        startMovement({ isMovingForward = true })
+                    } else {
+                        startMovement({ isMovingBackward = true })
+                    }
+
+                    delay(150L)
+                    resetAllMovementFlags()
+                }
+            }
+        }
+    }
+
+    private fun forwardRight() {
+        actualCarTurningMovement(
+            setVerticalMovementFlag = { isMovingForward = true },
+            setHorizontalMovementFlag = { isTurningRight = true },
+            forward = true
+        )
+    }
+
+    private fun backwardRight() {
+        actualCarTurningMovement(
+            setVerticalMovementFlag = { isMovingBackward = true },
+            setHorizontalMovementFlag = { isTurningLeft = true },
+            forward = false
+        )
+    }
+
+    private fun forwardLeft() {
+        actualCarTurningMovement(
+            setVerticalMovementFlag = { isMovingForward = true },
+            setHorizontalMovementFlag = { isTurningLeft = true },
+            forward = true
+        )
+    }
+
+    private fun backwardLeft() {
+        actualCarTurningMovement(
+            setVerticalMovementFlag = { isMovingBackward = true },
+            setHorizontalMovementFlag = { isTurningRight = true },
+            forward = false
+        )
+    }
+
+    private fun actualCarTurningMovement(
+        setVerticalMovementFlag: () -> Unit,
+        setHorizontalMovementFlag: () -> Unit,
+        forward: Boolean
+    ) {
+        viewModelScope.launch {
+            startMovement(setVerticalMovementFlag)
+            delay(150L)
+
+            startMovement(setVerticalMovementFlag)
+            delay(150L)
+
+            if (!forward) {
+                startMovement(setVerticalMovementFlag)
+                delay(150L)
+            }
+
+            startMovement(setHorizontalMovementFlag)
+            delay(150L)
+
+            if (!forward) {
+                startMovement(setVerticalMovementFlag)
+                delay(150L)
+            }
+
+            startMovement(setVerticalMovementFlag)
+            delay(150L)
+
+            startMovement(setHorizontalMovementFlag)
+            delay(150L)
+
+            startMovement(setVerticalMovementFlag)
+            delay(150L)
+
+            startMovement(setVerticalMovementFlag)
+            delay(150L)
+
+            startMovement(setHorizontalMovementFlag)
+            delay(150L)
+
+            startMovement(setVerticalMovementFlag)
+            delay(150L)
+
+            startMovement(setVerticalMovementFlag)
+            delay(150L)
+
+            startMovement(setVerticalMovementFlag)
+            delay(150L)
+
+            startMovement(setHorizontalMovementFlag)
+            delay(150L)
+
+            startMovement(setVerticalMovementFlag)
+            delay(150L)
+
+            if (forward) {
+                startMovement(setVerticalMovementFlag)
+                delay(150L)
+
+                startMovement(setVerticalMovementFlag)
+                delay(150L)
+            }
+
+            // After completing all movements, reset all flags to stop the movement
+            resetAllMovementFlags()
+        }
+    }
 }

@@ -1,10 +1,12 @@
 package com.example.mdpandroid.ui.shared
 
+import android.util.Log
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.example.mdpandroid.data.model.Car
+import com.example.mdpandroid.data.model.GameControlMode
 import com.example.mdpandroid.data.model.Modes
 import com.example.mdpandroid.data.model.Obstacle
 import com.example.mdpandroid.data.model.Orientation
@@ -16,7 +18,7 @@ import javax.inject.Inject
 class SharedViewModel @Inject constructor() : ViewModel() {
 
     // Shared grid size
-    val gridSize = 20f
+    val gridSize = 20
 
     // Shared car state
     val car = mutableStateOf<Car?>(null)  // Now the car can be null
@@ -32,6 +34,8 @@ class SharedViewModel @Inject constructor() : ViewModel() {
 
     // Mode set
     val mode = mutableStateOf(Modes.IDLE)
+
+    val gameControlMode = mutableStateOf(GameControlMode.DRIVING)
 
     val drivingMode = mutableStateOf(false)
 
@@ -57,13 +61,27 @@ class SharedViewModel @Inject constructor() : ViewModel() {
 
     fun setCar(positionX: Float, positionY: Float, orientation: Orientation = Orientation.N) {
         // Create a new Car instance
-        val newCar = Car(x = positionX, y = positionY, orientation = orientation)
+
+        val newCar = Car(x = positionX, y = positionY, transformY = gridSize - positionY, orientation = orientation)
 
         // Set the rotation angle based on the orientation
         newCar.setRotationAngleBasedOnOrientation()
 
         // Update the car state with the new Car instance
         car.value = newCar
+    }
+
+    fun setNumberOnObstacle(targetID: Int, numberOnObstacle: Int) {
+        // Find the obstacle with the given targetID
+        val obstacle = obstacles.find { it.targetID == targetID }
+
+        // If the obstacle is found, update the numberOnObstacle
+        if (obstacle != null) {
+            obstacle.numberOnObstacle = numberOnObstacle
+            Log.d("SharedViewModel", "Set numberOnObstacle to $numberOnObstacle for obstacle with targetID: $targetID")
+        } else {
+            Log.d("SharedViewModel", "Obstacle with targetID $targetID not found")
+        }
     }
 
     // Reset car position and orientation
