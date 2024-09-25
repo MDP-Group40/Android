@@ -290,7 +290,6 @@ class AndroidBluetoothController(
         return retryConnectionWithBackoff(device, retries)
     }
 
-    // Retry logic with backoff
     private suspend fun retryConnectionWithBackoff(
         device: BluetoothDeviceDomain,
         retries: Int = 3
@@ -298,16 +297,25 @@ class AndroidBluetoothController(
         var attempt = 0
         while (attempt < retries) {
             try {
+                Log.d("AndroidBluetoothController","retrying to connect attempt ${attempt+1}")
+                // Ensure any existing socket is closed before retrying
+                currentClientSocket?.close()
+                currentClientSocket = null
+
+                startDiscovery()
+                delay(5000)  // Wait for 5 seconds to discover the device
+
+                // Attempt to reconnect
                 return connectToDevice(device).single()
             } catch (e: Exception) {
                 Log.e("Bluetooth", "Retry connection attempt ${attempt + 1} failed: ${e.message}")
-                delay(1000L * (attempt + 1))  // Delay with backoff
-                Log.d("AndroidBluetoothController","Inside retryConnectionWithBackoff")
+                delay(2000L * (attempt + 1))  // Increased delay with backoff
                 attempt++
             }
         }
         return ConnectionResult.Error("Failed after $retries retries")
     }
+
 
     override fun connectToDevice(device: BluetoothDeviceDomain): Flow<ConnectionResult> {
         return flow {
