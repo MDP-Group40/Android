@@ -91,7 +91,7 @@ class AndroidBluetoothController(
                 _errors.emit("Connection lost, attempting to reconnect...")
                 val deviceDomain = bluetoothDevice.toBluetoothDeviceDomain()
                 val connectionResult = retryConnectionWithBackoff(deviceDomain)
-                Log.d("AndroidBluetoothController", "Using connectionResult")
+
                 // Handle the result of the reconnection attempt
                 if (connectionResult is ConnectionResult.ConnectionEstablished) {
                     Log.d("Bluetooth", "Reconnection successful")
@@ -285,12 +285,11 @@ class AndroidBluetoothController(
 
     // Method to start a connection with retry logic
     override suspend fun reconnectToLastDevice(retries: Int): ConnectionResult {
-        Log.d("BluetoothController", "lastConnectedDevice: $lastConnectedDevice")
+        Log.d("AndroidBluetoothController","Inside reconnectToLastDevice")
         val device = lastConnectedDevice ?: return ConnectionResult.Error("No device to reconnect")
         return retryConnectionWithBackoff(device, retries)
     }
 
-    // Retry logic with backoff
     private suspend fun retryConnectionWithBackoff(
         device: BluetoothDeviceDomain,
         retries: Int = 3
@@ -298,15 +297,34 @@ class AndroidBluetoothController(
         var attempt = 0
         while (attempt < retries) {
             try {
+                Log.d("Bluetooth", "Attempt ${attempt + 1}: Trying to connect to the device")
+                // Close any existing socket before retrying
+                currentClientSocket?.close()
+                currentClientSocket = null
+
+                startDiscovery()
+                delay(5000)  // Wait for 5 seconds to discover the device
+
+                // Attempt to reconnect
                 return connectToDevice(device).single()
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 Log.e("Bluetooth", "Retry connection attempt ${attempt + 1} failed: ${e.message}")
-                delay(1000L * (attempt + 1))  // Delay with backoff
+                // Print the stack trace to make sure the exception is caught
+                e.printStackTrace()
+                delay(2000L * (attempt + 1))  // Increased delay with backoff
+                attempt++
+            } catch (e: Exception) {
+                // Catch all other exceptions
+                Log.e("Bluetooth", "Unexpected error during connection attempt ${attempt + 1}: ${e.message}")
+                e.printStackTrace()
+                delay(2000L * (attempt + 1))
                 attempt++
             }
         }
         return ConnectionResult.Error("Failed after $retries retries")
     }
+
+
 
     override fun connectToDevice(device: BluetoothDeviceDomain): Flow<ConnectionResult> {
         return flow {
@@ -346,6 +364,7 @@ class AndroidBluetoothController(
                     emit(ConnectionResult.Error("Failed to create client socket"))
                 }
             } catch (e: IOException) {
+                Log.e("Bluetooth", "Connection failed with error: ${e.message}")
                 currentClientSocket?.close()
                 emit(ConnectionResult.Error("Connection was interrupted: ${e.message}"))
             }
