@@ -17,10 +17,12 @@ import com.example.mdpandroid.ui.shared.SharedViewModel
 @Composable
 fun InformationDisplay(
     viewModel: SharedViewModel,
+    cellSize: Int = 50, // Default cell size
+    showDebugInfo: Boolean = true, // Toggle to show debugging information
 ){
     val carPosition by viewModel.car
     val obstacles = viewModel.obstacles
-
+    val targets = viewModel.target
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -30,7 +32,7 @@ fun InformationDisplay(
 
         Column(
             modifier = Modifier
-                .weight(0.3f),
+                .weight(0.7f),
             verticalArrangement = Arrangement.Center
         ) {
             // Display car information
@@ -45,22 +47,22 @@ fun InformationDisplay(
             }
         }
         Column(
-            modifier = Modifier.weight(0.3f),
+            modifier = Modifier.weight(0.1f),
             verticalArrangement = Arrangement.Center
         ) {
             Text(text = "|")
             Text(text = "|")
         }
         Column(
-            modifier = Modifier.weight(0.3f)
+            modifier = Modifier.weight(1f)
         ){
             DisplayStyle(text = "NUMBER OF OBSTACLES: ${obstacles.size}")
 
             LazyColumn(
                 modifier = Modifier
                     .height(50.dp),
-                verticalArrangement = Arrangement.Center, // Space between each message
-                horizontalAlignment = Alignment.End
+                verticalArrangement = Arrangement.Top, // Space between each message
+                horizontalAlignment = Alignment.Start
             ) {
                 // Reverse the order of obstacles for the LazyColumn
                 items(obstacles.size) { index ->
@@ -68,11 +70,27 @@ fun InformationDisplay(
                     val reversedIndex = obstacles.size - 1 - index
                     val obstacle = obstacles[reversedIndex]
                     val num = reversedIndex + 1
-                    val facing = obstacle.facing ?: "UNKNOWN"  // Dereference MutableState for Facing
+                    val facing = obstacle.facing?: "UNKNOWN"  // Dereference MutableState for Facing
 
                     DisplayStyle(text = "  $num:(X: ${obstacle.x}, Y: ${obstacle.y}) - $facing", )
                 }
             }
         }
+
+
+        // }
+
+        /* item {
+                Text(text = "Grid Information: Number of Obstacles: ${obstacles.size}")
+                Spacer(modifier = Modifier.height(8.dp)) // Add some space between items
+                Text(text = "Obstacles:")
+            }
+
+            items(obstacles.size) { index ->
+                val obstacle = obstacles[index]
+                Text(text = "  $index: Position (X: ${obstacle.x}, Y: ${obstacle.y}), Facing: ${obstacle.facing}")
+            }*/
+
+
     }
 }

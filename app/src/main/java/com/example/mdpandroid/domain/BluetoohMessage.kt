@@ -4,9 +4,9 @@ import com.example.mdpandroid.data.model.Car
 import com.example.mdpandroid.data.model.Obstacle
 import com.example.mdpandroid.data.model.Orientation
 import com.example.mdpandroid.data.model.Target
+import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Polymorphic
 
 @Polymorphic
 @Serializable
