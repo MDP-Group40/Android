@@ -91,7 +91,7 @@ class AndroidBluetoothController(
                 _errors.emit("Connection lost, attempting to reconnect...")
                 val deviceDomain = bluetoothDevice.toBluetoothDeviceDomain()
                 val connectionResult = retryConnectionWithBackoff(deviceDomain)
-
+                Log.d("AndroidBluetoothController", "Using connectionResult")
                 // Handle the result of the reconnection attempt
                 if (connectionResult is ConnectionResult.ConnectionEstablished) {
                     Log.d("Bluetooth", "Reconnection successful")
@@ -274,7 +274,7 @@ class AndroidBluetoothController(
 
     // Method to start a connection with retry logic
     override suspend fun reconnectToLastDevice(retries: Int): ConnectionResult {
-        Log.d("AndroidBluetoothController","Inside reconnectToLastDevice")
+        Log.d("BluetoothController", "lastConnectedDevice: $lastConnectedDevice")
         val device = lastConnectedDevice ?: return ConnectionResult.Error("No device to reconnect")
         return retryConnectionWithBackoff(device, retries)
     }
@@ -287,11 +287,10 @@ class AndroidBluetoothController(
         var attempt = 0
         while (attempt < retries) {
             try {
-                return connectToDeviceOnce(device).single()
+                return connectToDevice(device).single()
             } catch (e: Exception) {
                 Log.e("Bluetooth", "Retry connection attempt ${attempt + 1} failed: ${e.message}")
                 delay(1000L * (attempt + 1))  // Delay with backoff
-                Log.d("AndroidBluetoothController","Inside retryConnectionWithBackoff")
                 attempt++
             }
         }
