@@ -32,7 +32,7 @@ fun InformationDisplay(
 
         Column(
             modifier = Modifier
-                .weight(0.3f),
+                .weight(0.7f),
             verticalArrangement = Arrangement.Center
         ) {
             // Display car information
@@ -47,22 +47,22 @@ fun InformationDisplay(
             }
         }
         Column(
-            modifier = Modifier.weight(0.3f),
+            modifier = Modifier.weight(0.1f),
             verticalArrangement = Arrangement.Center
         ) {
             Text(text = "|")
             Text(text = "|")
         }
         Column(
-            modifier = Modifier.weight(0.3f)
+            modifier = Modifier.weight(1f)
         ){
             DisplayStyle(text = "NUMBER OF OBSTACLES: ${obstacles.size}")
 
             LazyColumn(
                 modifier = Modifier
                     .height(50.dp),
-                verticalArrangement = Arrangement.Center, // Space between each message
-                horizontalAlignment = Alignment.End
+                verticalArrangement = Arrangement.Top, // Space between each message
+                horizontalAlignment = Alignment.Start
             ) {
                 // Reverse the order of obstacles for the LazyColumn
                 items(obstacles.size) { index ->

@@ -116,6 +116,7 @@ open class BluetoothViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                Log.d("BluetoothViewModel", "Attempting to connect with timeout of 10 seconds")
                 withTimeout(10000) {
                     bluetoothController.connectToDevice(device)
                         .onEach { result ->
@@ -149,6 +150,7 @@ open class BluetoothViewModel @Inject constructor(
                                         )
                                     }
                                     // Reflect the UI for reconnection attempt
+                                    Log.d("BluetoothViewModel", "Calling onConnectionLost due to connection error")
                                     onConnectionLost()  // Retry connection when connection fails
                                 }
 
@@ -191,10 +193,12 @@ open class BluetoothViewModel @Inject constructor(
 
     // Reconnect to the last paired device if the connection is lost
     fun reconnectToLastPairedDevice() {
+
         viewModelScope.launch(Dispatchers.IO) {
             _state.update { it.copy(isConnecting = true) }  // Show loading icon during reconnection
             when (val result = bluetoothController.reconnectToLastDevice()) {
                 is ConnectionResult.ConnectionEstablished -> {
+                    Log.d("BluetoothViewModel", "Reconnection successful")
                     _state.update {
                         it.copy(
                             isConnected = true,
@@ -231,6 +235,7 @@ open class BluetoothViewModel @Inject constructor(
                 errorMessage = "Connection lost, attempting to reconnect..."
             )
         }
+        Log.d("BluetoothViewModel", "Attempting to reconnectToLastPairedDevice")
         reconnectToLastPairedDevice()  // Try to reconnect
     }
 

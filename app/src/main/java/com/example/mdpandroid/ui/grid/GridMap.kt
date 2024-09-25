@@ -23,7 +23,7 @@ fun GridMap(
     ) {
         for (y in 0 until gridSize) {
 
-            val transformedY = gridSize - y
+            val transformedY = gridSize - y - 1
 
             Row {
                 for (x in 0 until gridSize) {

@@ -27,7 +27,7 @@ fun Car(viewModel: SharedViewModel, cellSize: Int) {
         val cell = cellSize.dp
         // Calculate the offset in Dp using density
         val offsetX = ((car.x - 0.2 ) * cell.value).dp
-        val offsetY = ((car.transformY - 1.6)* cell.value).dp
+        val offsetY = ((car.transformY - 1.5)* cell.value).dp
 
         Box(
 
