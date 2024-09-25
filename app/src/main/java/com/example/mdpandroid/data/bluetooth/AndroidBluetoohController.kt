@@ -297,8 +297,8 @@ class AndroidBluetoothController(
         var attempt = 0
         while (attempt < retries) {
             try {
-                Log.d("AndroidBluetoothController","retrying to connect attempt ${attempt+1}")
-                // Ensure any existing socket is closed before retrying
+                Log.d("Bluetooth", "Attempt ${attempt + 1}: Trying to connect to the device")
+                // Close any existing socket before retrying
                 currentClientSocket?.close()
                 currentClientSocket = null
 
@@ -307,14 +307,23 @@ class AndroidBluetoothController(
 
                 // Attempt to reconnect
                 return connectToDevice(device).single()
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 Log.e("Bluetooth", "Retry connection attempt ${attempt + 1} failed: ${e.message}")
+                // Print the stack trace to make sure the exception is caught
+                e.printStackTrace()
                 delay(2000L * (attempt + 1))  // Increased delay with backoff
+                attempt++
+            } catch (e: Exception) {
+                // Catch all other exceptions
+                Log.e("Bluetooth", "Unexpected error during connection attempt ${attempt + 1}: ${e.message}")
+                e.printStackTrace()
+                delay(2000L * (attempt + 1))
                 attempt++
             }
         }
         return ConnectionResult.Error("Failed after $retries retries")
     }
+
 
 
     override fun connectToDevice(device: BluetoothDeviceDomain): Flow<ConnectionResult> {
@@ -355,6 +364,7 @@ class AndroidBluetoothController(
                     emit(ConnectionResult.Error("Failed to create client socket"))
                 }
             } catch (e: IOException) {
+                Log.e("Bluetooth", "Connection failed with error: ${e.message}")
                 currentClientSocket?.close()
                 emit(ConnectionResult.Error("Connection was interrupted: ${e.message}"))
             }
