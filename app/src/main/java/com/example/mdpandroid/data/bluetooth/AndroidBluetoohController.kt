@@ -93,18 +93,29 @@ class AndroidBluetoothController(
 
     init {
         updatePairedDevices()
-        if (!isBluetoothStateReceiverRegistered) {
-            context.registerReceiver(
-                bluetoothStateReceiver,
-                IntentFilter().apply {
-                    addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED)
-                    addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
-                    addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
-                }
-            )
-            isBluetoothStateReceiverRegistered = true
+
+        // Register the Bluetooth state receiver if permissions are granted
+        if (hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
+            if (!isBluetoothStateReceiverRegistered) {
+                context.registerReceiver(
+                    bluetoothStateReceiver,
+                    IntentFilter().apply {
+                        addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED)
+                        addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+                        addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+                        addAction(BluetoothAdapter.ACTION_STATE_CHANGED)  // Additional action
+                        addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)  // Additional action
+                    }
+                )
+                isBluetoothStateReceiverRegistered = true
+            }
+        } else {
+            CoroutineScope(Dispatchers.IO).launch {
+                _errors.emit("Permission to connect to Bluetooth is not granted")
+            }
         }
     }
+
 
     override fun isBluetoothEnabled(): Boolean {
         return bluetoothAdapter?.isEnabled == true
@@ -267,7 +278,7 @@ class AndroidBluetoothController(
         var attempt = 0
         while (attempt < retries) {
             try {
-                return connectToDeviceOnce(device).single()
+                return connectToDevice(device).single()
             } catch (e: Exception) {
                 Log.e("Bluetooth", "Retry connection attempt ${attempt + 1} failed: ${e.message}")
                 delay(1000L * (attempt + 1))  // Delay with backoff
@@ -275,36 +286,6 @@ class AndroidBluetoothController(
             }
         }
         return ConnectionResult.Error("Failed after $retries retries")
-    }
-
-    private fun connectToDeviceOnce(device: BluetoothDeviceDomain): Flow<ConnectionResult> {
-        return flow {
-            try {
-                currentClientSocket = bluetoothAdapter
-                    ?.getRemoteDevice(device.address)
-                    ?.createRfcommSocketToServiceRecord(UUID.fromString(SERVICE_UUID))
-
-                stopDiscovery()
-
-                currentClientSocket?.let { socket ->
-                    withTimeoutOrNull(10000) {
-                        socket.connect()
-                    } ?: throw IOException("Connection timed out")
-
-                    lastConnectedDevice = device  // Store the last connected device
-
-                    // Initialize the DataTransferService after the connection is established
-                    dataTransferService = BluetoothDataTransferService(socket)
-
-                    emit(ConnectionResult.ConnectionEstablished)
-                } ?: run {
-                    emit(ConnectionResult.Error("Failed to create client socket"))
-                }
-            } catch (e: IOException) {
-                currentClientSocket?.close()
-                emit(ConnectionResult.Error("Connection was interrupted: ${e.message}"))
-            }
-        }
     }
 
     override fun connectToDevice(device: BluetoothDeviceDomain): Flow<ConnectionResult> {

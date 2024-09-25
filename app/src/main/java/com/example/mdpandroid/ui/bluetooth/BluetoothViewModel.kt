@@ -225,6 +225,8 @@ open class BluetoothViewModel @Inject constructor(
 
     // Automatically attempt to reconnect if the connection is lost
     private fun onConnectionLost() {
+
+        Log.d("BluetoothViewModel", "onConnectionLost() is called")
         _state.update {
             it.copy(
                 isConnected = false,
