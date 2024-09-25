@@ -223,7 +223,6 @@ open class BluetoothViewModel @Inject constructor(
         }
     }
 
-
     // Automatically attempt to reconnect if the connection is lost
     private fun onConnectionLost() {
         _state.update {
@@ -351,13 +350,13 @@ open class BluetoothViewModel @Inject constructor(
     }
 
     private fun handleReceivedMovementMessage(message: BluetoothMessage, carViewModel: CarViewModel) {
-        // Check if the message is an instance of ImageMessage
+        // Check if the message is an instance of MovementMessage
         if (message is MovementMessage) {
             // Log the received message
             Log.d("BluetoothViewModel", "Received MovementMessage: $message")
 
-            // Pass the direction and distance to the carViewModel
-            carViewModel.movementViaBluetooth(action = message.direction, distance = message.distance, nextX = message.nextX, nextY =  message.nextY, nextOrientation = message.nextOrientation)
+            // Enqueue the movement message into the carViewModel's queue
+            carViewModel.enqueueMovementMessage(message)
         }
     }
 }

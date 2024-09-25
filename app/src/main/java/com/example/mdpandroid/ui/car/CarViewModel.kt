@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.mdpandroid.data.model.Car
 import com.example.mdpandroid.data.model.Orientation
+import com.example.mdpandroid.domain.MovementMessage
 import com.example.mdpandroid.ui.buttons.ControlViewModel
 import com.example.mdpandroid.ui.shared.SharedViewModel
 import kotlinx.coroutines.Dispatchers
@@ -11,7 +12,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.LinkedList
 import java.util.Locale
+import java.util.Queue
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -37,6 +40,11 @@ class CarViewModel(
     // Job for managing the loop
     private var movementJob: Job? = null
 
+    // Queue to store movement commands
+    private val movementQueue: Queue<MovementMessage> = LinkedList()
+    private var isProcessingQueue = false // To track if the queue is being processed
+
+
     // Abstract methods from ControlViewModel, now implemented in CarViewModel
     override fun handleButtonUp() {
         Log.d("CarViewModel", "handleButtonUp is called")
@@ -57,7 +65,6 @@ class CarViewModel(
         Log.d("CarViewModel", "handleButtonRight is called")
         startMovement({ isTurningRight = true })
     }
-
 
     override fun handleButtonA() {
         // If button A is used for moving forward, this can call handleButtonUp
@@ -319,9 +326,43 @@ class CarViewModel(
         }
     }
 
-
     // Bluetooth Connection Movement
-    fun movementViaBluetooth(
+
+    // Function to add movement commands to the queue
+    fun enqueueMovementMessage(message: MovementMessage) {
+        movementQueue.offer(message) // Add the message to the queue
+        processMovementQueue() // Start processing the queue if not already in progress
+    }
+
+    // Process the queue one command at a time
+    private fun processMovementQueue() {
+        if (isProcessingQueue || movementQueue.isEmpty()) return // If already processing or queue is empty, do nothing
+
+        isProcessingQueue = true // Set the flag to indicate we're processing the queue
+
+        viewModelScope.launch {
+            while (movementQueue.isNotEmpty()) {
+                val message = movementQueue.poll() // Get and remove the next command from the queue
+                if (message != null) {
+                    // Process the movement command
+                    Log.d("CarViewModel", "Processing MovementMessage: $message")
+                    movementViaBluetooth(
+                        action = message.direction,
+                        distance = message.distance,
+                        nextX = message.nextX,
+                        nextY = message.nextY,
+                        nextOrientation = message.nextOrientation
+                    )
+
+                    // Wait for movement to complete before processing the next command
+                    delay(1000L) // Adjust this delay based on movement time
+                }
+            }
+            isProcessingQueue = false // Mark the queue as processed once it's done
+        }
+    }
+
+    private fun movementViaBluetooth(
         action: String,
         distance:Float,
         nextX: Float = 0f,
