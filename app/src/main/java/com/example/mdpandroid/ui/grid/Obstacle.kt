@@ -46,7 +46,7 @@ fun Obstacle(
     // Define the border based on the current facing direction
     val borderModifier = Modifier.drawBehind {
         val strokeWidth = 8.dp.toPx()
-        val color = Color(0xFF5C8363)
+        val color = Color(0xFF0001FD)
 
         when (facingState) {
             Facing.NORTH -> drawLine(color, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth)
