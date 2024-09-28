@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
@@ -21,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -28,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.mdpandroid.R
@@ -56,7 +59,10 @@ fun BottomButtons(
             val car = sharedViewModel.car.value
             if (car == null) {
                 // Show snackbar if no car is available
-                sharedViewModel.showSnackbar("No car found. Set car position first.", SnackbarDuration.Short)
+                sharedViewModel.showSnackbar(
+                    "No car found. Set car position first.",
+                    SnackbarDuration.Short
+                )
                 return
             }
 
@@ -68,7 +74,7 @@ fun BottomButtons(
                 car = car,
                 obstacles = obstacles,
                 target = targets,
-                mode = if(currentMode == Modes.IMAGERECOGNITION) 0 else 1,
+                mode = if (currentMode == Modes.IMAGERECOGNITION) 0 else 1,
                 senderName = "Android Device", // Modify as needed
                 isFromLocalUser = true
             )
@@ -93,99 +99,60 @@ fun BottomButtons(
     }
 
     // Layout for the buttons
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .offset(y = (-20).dp)
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                onClick = { navController.safeNavigate("bluetooth") },
-                modifier = Modifier,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent
-                ),
-                content = {
-                    Box(
+        Button(
+            onClick = { navController.safeNavigate("bluetooth") },
+            modifier = Modifier,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            ),
+            content = {
+                Box(
+                    modifier = Modifier
+                        .background(Color.Transparent),
+                    contentAlignment = Alignment.Center // Align content to the center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.menu_text_button), // Your image resource
+                        contentDescription = "Menu Button",
                         modifier = Modifier
-                            .background(Color.Transparent),
-                        contentAlignment = Alignment.Center // Align content to the center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.tiny_button), // Your image resource
-                            contentDescription = "Menu Button",
-                            modifier = Modifier
-                                .background(Color.Transparent)
-                        )
-                    }
+                            .background(Color.Transparent)
+                            .scale(1.6f)
+                    )
                 }
-            )
-
-            Spacer(modifier = Modifier.width(8.dp)) // Added more padding between buttons
-
-            Button(
-                onClick = { handleStartClick() },
-                shape = CircleShape,
-                modifier = Modifier,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent
-                ),
-                content = {
-                    Box(
-                        modifier = Modifier
-                            .background(Color.Transparent),
-                        contentAlignment = Alignment.Center // Align content to the center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.tiny_button), // Your image resource
-                            contentDescription = "Menu Button",
-                            modifier = Modifier
-                                .background(Color.Transparent)
-                        )
-                    }
-                }
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset(y=(-15).dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.text_menu),
-                modifier = Modifier,
-                contentDescription = "Menu_Text"
-            )
-
-            Spacer(modifier = Modifier.width(30.dp)) // Padding between text images
-
-           /* Image(
-                painter = painterResource(id = R.drawable.text_start),
-                modifier = Modifier,
-                contentDescription = "Start_Text"
-            )*/
-            Box(
-                modifier = Modifier,
-                contentAlignment = Alignment.Center // Center the content in the Box
-            ) {
-                Text(
-                    text = "Start",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center, // Center the text inside the box
-                    lineHeight = 13.sp,
-                    minLines = 2,
-                    maxLines = 2
-                )
             }
-        }
+        )
+
+        Spacer(modifier = Modifier.width(8.dp)) // Added more padding between buttons
+
+        Button(
+            onClick = { handleStartClick() },
+            shape = CircleShape,
+            modifier = Modifier,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            ),
+            content = {
+                Box(
+                    modifier = Modifier
+                        .background(Color.Transparent),
+                    contentAlignment = Alignment.Center // Align content to the center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.start_text_button), // Your image resource
+                        contentDescription = "Menu Button",
+                        modifier = Modifier
+                            .background(Color.Transparent)
+                            .scale(1.6f)
+                    )
+                }
+            }
+        )
     }
 }
+

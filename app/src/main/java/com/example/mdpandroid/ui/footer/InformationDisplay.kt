@@ -54,7 +54,7 @@ fun InformationDisplay(
             Text(text = "|")
         }
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         ){
             DisplayStyle(text = "NUMBER OF OBSTACLES: ${obstacles.size}")
 

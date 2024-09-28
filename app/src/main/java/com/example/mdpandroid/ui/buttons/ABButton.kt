@@ -68,7 +68,7 @@ fun ABButton(viewModel: ControlViewModel,
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
             modifier = Modifier
-                .size(100.dp)
+                .size(105.dp)
                 .offset(x = 40.dp),
             imageResId = R.drawable.a_button
         )
@@ -86,7 +86,7 @@ fun ABButton(viewModel: ControlViewModel,
             activeButton = activeButton,
             setActiveButton = { setActiveButton(it) },
             modifier = Modifier
-                .size(100.dp)
+                .size(105.dp)
                 .offset(x = (-30).dp),
             imageResId = R.drawable.b_button
         )

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -26,8 +27,8 @@ fun Car(viewModel: SharedViewModel, cellSize: Int) {
     carPosition?.let { car ->
         val cell = cellSize.dp
         // Calculate the offset in Dp using density
-        val offsetX = ((car.x - 0.2 ) * cell.value).dp
-        val offsetY = ((car.transformY - 1.5)* cell.value).dp
+        val offsetX = ((car.x - 0.2) * cell.value).dp
+        val offsetY = ((car.transformY - 1.6)* cell.value).dp
 
         Box(
 
@@ -44,8 +45,10 @@ fun Car(viewModel: SharedViewModel, cellSize: Int) {
             // Display the image
             Image(
                 painter = painter,
-                contentDescription = null, // Provide content description for accessibility if needed
-                modifier = Modifier.fillMaxSize()
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.Center)
             )
 
         }
