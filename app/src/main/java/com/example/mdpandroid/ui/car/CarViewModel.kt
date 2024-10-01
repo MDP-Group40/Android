@@ -229,7 +229,7 @@ class CarViewModel(
     }
 
     // Function to calculate leftX and leftY based on the car's x, y, and rotation angle
-    fun calculateLeftCoordinates(carPosition: Car) {
+    private fun calculateLeftCoordinates(carPosition: Car) {
         val (carWidth, carHeight) = getDimensionsForOrientation(carPosition.orientation)
 
         // Offset from the center to the bottom-left corner before rotation
@@ -245,7 +245,7 @@ class CarViewModel(
 
         // Rounding the new position to 2 decimal places using Locale.US
         carPosition.leftX = String.format(Locale.US, "%.1f", carPosition.x + offsetX).toFloat()
-        carPosition.leftY = String.format(Locale.US, "%.1f", carPosition.transformY - offsetY).toFloat()
+        carPosition.leftY = String.format(Locale.US, "%.1f", carPosition.y - offsetY).toFloat()
     }
 
     private fun isGridCellOccupied(newPosition: Car): Boolean {

@@ -99,7 +99,7 @@ class SharedViewModel @Inject constructor() : ViewModel() {
 
         // Rounding the new position to 2 decimal places using Locale.US
         val leftX = String.format(Locale.US, "%.1f", positionX + offsetX).toFloat()
-        val leftY = String.format(Locale.US, "%.1f", transformY - offsetY).toFloat()
+        val leftY = String.format(Locale.US, "%.1f", positionY  - offsetY).toFloat()
 
         val newCar = Car(x = positionX, y = positionY, transformY = transformY, orientation = orientation, leftX = leftX, leftY = leftY)
 
