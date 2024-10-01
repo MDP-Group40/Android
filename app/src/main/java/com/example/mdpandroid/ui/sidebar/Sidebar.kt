@@ -166,7 +166,7 @@ fun SetCarButton(sharedViewModel: SharedViewModel) {
         SetCarDialog(
             onDismissRequest = { showDialog = false },
             onConfirm = { x, y, orientation ->
-                sharedViewModel.setCar(leftX = x, leftY = y, orientation = orientation)
+                sharedViewModel.setCar(positionX = x, positionY = y, orientation = orientation)
             }
         )
     }

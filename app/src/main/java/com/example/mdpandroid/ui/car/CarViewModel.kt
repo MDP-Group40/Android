@@ -406,7 +406,7 @@ class CarViewModel(
             else -> Orientation.N
         }
 
-       car.value?.let { sharedViewModel.setCar(leftX = nextX, leftY = nextY, orientation = nextOri ) }
+       car.value?.let { sharedViewModel.setCar(positionX = nextX, positionY = nextY, orientation = nextOri ) }
     }
 
     private fun straightMovement(distance: Float, forward: Boolean) {
