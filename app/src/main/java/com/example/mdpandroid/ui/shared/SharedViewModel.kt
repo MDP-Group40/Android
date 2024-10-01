@@ -63,14 +63,13 @@ class SharedViewModel @Inject constructor() : ViewModel() {
         snackbarDuration.value = null
     }
 
-    fun setCar(positionX: Float, positionY: Float, orientation: Orientation = Orientation.N) {
-        // Create a new Car instance
-        // Offset from the center to the bottom-left corner before rotation
+    fun setCar(leftX: Float, leftY: Float, orientation: Orientation) {
+
+        // Calculate the half width and half height to find the offset from the center
         val halfWidth = 3 / 2
         val halfHeight = 3 / 2
 
-        val transformY = gridSize - positionY
-
+        // Determine the rotation angle based on the orientation
         val rotationAngle = when (orientation) {
             Orientation.N -> 0f
             Orientation.NNE -> 22.5f
@@ -93,15 +92,20 @@ class SharedViewModel @Inject constructor() : ViewModel() {
         // Rotation angle in radians
         val angleInRadians = rotationAngle * (PI / 180).toFloat()
 
-        // Apply rotation to the offset to get the new leftX and leftY
-        val offsetX = -halfWidth * cos(angleInRadians) - halfHeight * sin(angleInRadians)
-        val offsetY = -halfWidth * sin(angleInRadians) + halfHeight * cos(angleInRadians)
+        // Apply the inverse rotation to calculate the center (x, y)
+        val offsetX = halfWidth * cos(angleInRadians) + halfHeight * sin(angleInRadians)
+        val offsetY = halfWidth * sin(angleInRadians) - halfHeight * cos(angleInRadians)
 
+        // Calculate the center x and y based on the provided leftX and leftY
         // Rounding the new position to 2 decimal places using Locale.US
-        val leftX = String.format(Locale.US, "%.1f", positionX + offsetX).toFloat()
-        val leftY = String.format(Locale.US, "%.1f", positionY  - offsetY).toFloat()
+        val centerX = String.format(Locale.US, "%.1f", leftX + offsetX).toFloat()
+        val centerY = String.format(Locale.US, "%.1f", leftY + offsetY).toFloat()
 
-        val newCar = Car(x = positionX, y = positionY, transformY = transformY, orientation = orientation, leftX = leftX, leftY = leftY)
+        // Calculate transformY based on grid size and centerY
+        val transformY = gridSize - centerY
+
+        // Create the new Car instance
+        val newCar = Car(x = centerX, y = centerY, transformY = transformY, orientation = orientation, leftX = leftX, leftY = leftY)
 
         // Set the rotation angle based on the orientation
         newCar.setRotationAngleBasedOnOrientation()
@@ -109,6 +113,7 @@ class SharedViewModel @Inject constructor() : ViewModel() {
         // Update the car state with the new Car instance
         car.value = newCar
     }
+
 
     fun setNumberOnObstacle(targetID: Int, numberOnObstacle: Int) {
         // Find the obstacle with the given targetID

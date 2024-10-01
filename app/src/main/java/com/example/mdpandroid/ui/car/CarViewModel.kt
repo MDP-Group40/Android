@@ -300,15 +300,7 @@ class CarViewModel(
     }
 
     private fun getDimensionsForOrientation(orientation: Orientation): Pair<Float, Float> {
-        return when (orientation) {
-            Orientation.N, Orientation.S,Orientation.SSW,
-            Orientation.SSE, Orientation.NNE,Orientation.NNW -> Pair(2f, 3f)  // width, height
-            Orientation.E, Orientation.W,  Orientation.SEE,
-            Orientation.SWW, Orientation.NEE, Orientation.NWW -> Pair(3f, 2f)  // width, height
-            Orientation.NE, Orientation.SE,
-            Orientation.SW, Orientation.NW -> Pair(1.5f, 2.5f)  // width, height
-
-        }
+        return Pair(3f, 3f)  // width, height
     }
 
     private fun getSideCenters(car: Car): List<Pair<Float, Float>> {
@@ -414,7 +406,7 @@ class CarViewModel(
             else -> Orientation.N
         }
 
-       car.value?.let { sharedViewModel.setCar(positionX = nextX, positionY = nextY, orientation = nextOri ) }
+       car.value?.let { sharedViewModel.setCar(leftX = nextX, leftY = nextY, orientation = nextOri ) }
     }
 
     private fun straightMovement(distance: Float, forward: Boolean) {
