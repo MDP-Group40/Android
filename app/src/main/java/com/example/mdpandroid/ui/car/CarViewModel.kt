@@ -129,9 +129,13 @@ class CarViewModel(
                     }
 
                     // Update car state on the main thread
-                    newPosition?.let {
+                    newPosition?.let { updatedCar ->
                         withContext(Dispatchers.Main) {
-                            car.value = it
+                            // Update the car position
+                            car.value = updatedCar
+
+                            // Calculate and update leftX and leftY after the movement
+                            calculateLeftCoordinates(updatedCar)
                         }
                     }
 
@@ -222,6 +226,26 @@ class CarViewModel(
         }
 
         return carPosition.copy(rotationAngle = newAngle, orientation = newOrientation)
+    }
+
+    // Function to calculate leftX and leftY based on the car's x, y, and rotation angle
+    fun calculateLeftCoordinates(carPosition: Car) {
+        val (carWidth, carHeight) = getDimensionsForOrientation(carPosition.orientation)
+
+        // Offset from the center to the bottom-left corner before rotation
+        val halfWidth = carWidth / 2
+        val halfHeight = carHeight / 2
+
+        // Rotation angle in radians
+        val angleInRadians = carPosition.rotationAngle * (PI / 180).toFloat()
+
+        // Apply rotation to the offset to get the new leftX and leftY
+        val offsetX = -halfWidth * cos(angleInRadians) - halfHeight * sin(angleInRadians)
+        val offsetY = -halfWidth * sin(angleInRadians) + halfHeight * cos(angleInRadians)
+
+        // Rounding the new position to 2 decimal places using Locale.US
+        carPosition.leftX = String.format(Locale.US, "%.1f", carPosition.x + offsetX).toFloat()
+        carPosition.leftY = String.format(Locale.US, "%.1f", carPosition.transformY - offsetY).toFloat()
     }
 
     private fun isGridCellOccupied(newPosition: Car): Boolean {
