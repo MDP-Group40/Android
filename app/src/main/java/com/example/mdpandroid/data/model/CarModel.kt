@@ -22,8 +22,6 @@ data class Car(
     var transformY: Float, // use to render the car in terms of origin being bottom left
     var orientation: Orientation,
     var rotationAngle: Float = 0f, // Track the current rotation angle
-    var leftX: Float,
-    var leftY: Float
 ) {
 
     // Function to set rotationAngle based on the current orientation
