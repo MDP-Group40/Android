@@ -134,8 +134,6 @@ class CarViewModel(
                             // Update the car position
                             car.value = updatedCar
 
-                            // Calculate and update leftX and leftY after the movement
-                            calculateLeftCoordinates(updatedCar)
                         }
                     }
 
@@ -228,26 +226,6 @@ class CarViewModel(
         return carPosition.copy(rotationAngle = newAngle, orientation = newOrientation)
     }
 
-    // Function to calculate leftX and leftY based on the car's x, y, and rotation angle
-    private fun calculateLeftCoordinates(carPosition: Car) {
-        val (carWidth, carHeight) = getDimensionsForOrientation(carPosition.orientation)
-
-        // Offset from the center to the bottom-left corner before rotation
-        val halfWidth = carWidth / 2
-        val halfHeight = carHeight / 2
-
-        // Rotation angle in radians
-        val angleInRadians = carPosition.rotationAngle * (PI / 180).toFloat()
-
-        // Apply rotation to the offset to get the new leftX and leftY
-        val offsetX = -halfWidth * cos(angleInRadians) - halfHeight * sin(angleInRadians)
-        val offsetY = -halfWidth * sin(angleInRadians) + halfHeight * cos(angleInRadians)
-
-        // Rounding the new position to 2 decimal places using Locale.US
-        carPosition.leftX = String.format(Locale.US, "%.1f", carPosition.x + offsetX).toFloat()
-        carPosition.leftY = String.format(Locale.US, "%.1f", carPosition.y - offsetY).toFloat()
-    }
-
     private fun isGridCellOccupied(newPosition: Car): Boolean {
         val sideCenters = getSideCenters(newPosition)
         var isCollisionDetected = false
@@ -299,12 +277,12 @@ class CarViewModel(
         return isCollisionDetected
     }
 
-    private fun getDimensionsForOrientation(orientation: Orientation): Pair<Float, Float> {
+    private fun getDimensionsForOrientation(): Pair<Float, Float> {
         return Pair(3f, 3f)  // width, height
     }
 
     private fun getSideCenters(car: Car): List<Pair<Float, Float>> {
-        val (width, height) = getDimensionsForOrientation(car.orientation)
+        val (width, height) = getDimensionsForOrientation()
 
         val halfWidth = width / 2
         val halfHeight = height / 2
