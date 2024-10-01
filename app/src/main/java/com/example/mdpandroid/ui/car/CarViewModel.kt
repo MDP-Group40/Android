@@ -245,7 +245,7 @@ class CarViewModel(
 
         // Rounding the new position to 2 decimal places using Locale.US
         carPosition.leftX = String.format(Locale.US, "%.1f", carPosition.x + offsetX).toFloat()
-        carPosition.leftY = String.format(Locale.US, "%.1f", carPosition.y + offsetY).toFloat()
+        carPosition.leftY = String.format(Locale.US, "%.1f", carPosition.y - offsetY).toFloat()
     }
 
     private fun isGridCellOccupied(newPosition: Car): Boolean {
