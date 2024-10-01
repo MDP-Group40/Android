@@ -40,7 +40,7 @@ fun InformationDisplay(
 
             if (carPosition != null) {
                 val car = carPosition!!
-                DisplayStyle(text = "(X: ${car.leftX}, Y: ${car.leftY}) - ${car.orientation}")
+                DisplayStyle(text = "(X: ${car.x}, Y: ${car.y}) - ${car.orientation}")
             } else {
                 DisplayStyle(text = "CAR IS NOT POSITIONED YET.")
 

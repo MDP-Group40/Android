@@ -12,11 +12,7 @@ import com.example.mdpandroid.data.model.Obstacle
 import com.example.mdpandroid.data.model.Orientation
 import com.example.mdpandroid.data.model.Target
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Locale
 import javax.inject.Inject
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 
 @HiltViewModel
 class SharedViewModel @Inject constructor() : ViewModel() {
@@ -65,43 +61,8 @@ class SharedViewModel @Inject constructor() : ViewModel() {
 
     fun setCar(positionX: Float, positionY: Float, orientation: Orientation = Orientation.N) {
         // Create a new Car instance
-        // Offset from the center to the bottom-left corner before rotation
-        val halfWidth = 3 / 2
-        val halfHeight = 3 / 2
 
-        val transformY = gridSize - positionY
-
-        val rotationAngle = when (orientation) {
-            Orientation.N -> 0f
-            Orientation.NNE -> 22.5f
-            Orientation.NE -> 45f
-            Orientation.NEE -> 67.5f
-            Orientation.E -> 90f
-            Orientation.SEE -> 112.5f
-            Orientation.SE -> 135f
-            Orientation.SSE -> 157.5f
-            Orientation.S -> 180f
-            Orientation.SSW -> 202.5f
-            Orientation.SW -> 225f
-            Orientation.SWW -> 247.5f
-            Orientation.W -> 270f
-            Orientation.NWW -> 292.5f
-            Orientation.NW -> 315f
-            Orientation.NNW -> 337.5f
-        }
-
-        // Rotation angle in radians
-        val angleInRadians = rotationAngle * (PI / 180).toFloat()
-
-        // Apply rotation to the offset to get the new leftX and leftY
-        val offsetX = -halfWidth * cos(angleInRadians) - halfHeight * sin(angleInRadians)
-        val offsetY = -halfWidth * sin(angleInRadians) + halfHeight * cos(angleInRadians)
-
-        // Rounding the new position to 2 decimal places using Locale.US
-        val leftX = String.format(Locale.US, "%.1f", positionX + offsetX).toFloat()
-        val leftY = String.format(Locale.US, "%.1f", positionY - offsetY).toFloat()
-
-        val newCar = Car(x = positionX, y = positionY, transformY = transformY, orientation = orientation, leftX = leftX, leftY = leftY)
+        val newCar = Car(x = positionX, y = positionY, transformY = gridSize - positionY, orientation = orientation)
 
         // Set the rotation angle based on the orientation
         newCar.setRotationAngleBasedOnOrientation()
