@@ -15,7 +15,7 @@ enum class Orientation {
 
 @Serializable
 data class Car(
-    val width: Float = 2f,  // Width and height can remain floats to match the coordinate system
+    val width: Float = 3f,  // Width and height can remain floats to match the coordinate system
     val height: Float = 3f,
     var x: Float,  // x-coordinate of the center of the car
     var y: Float,  // y-coordinate of the center of the car
