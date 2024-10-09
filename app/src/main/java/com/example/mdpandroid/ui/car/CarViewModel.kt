@@ -44,7 +44,6 @@ class CarViewModel(
     private val movementQueue: Queue<MovementMessage> = LinkedList()
     private var isProcessingQueue = false // To track if the queue is being processed
 
-
     // Abstract methods from ControlViewModel, now implemented in CarViewModel
     override fun handleButtonUp() {
         Log.d("CarViewModel", "handleButtonUp is called")
@@ -339,17 +338,14 @@ class CarViewModel(
                 val message = movementQueue.poll() // Get and remove the next command from the queue
                 if (message != null) {
                     // Process the movement command
-                    Log.d("CarViewModel", "Processing MovementMessage: $message")
                     movementViaBluetooth(
-                        action = message.direction,
-                        distance = message.distance,
                         nextX = message.nextX,
                         nextY = message.nextY,
                         nextOrientation = message.nextOrientation
                     )
 
                     // Wait for movement to complete before processing the next command
-                    delay(1000L) // Adjust this delay based on movement time
+                    delay(4000L) // Adjust this delay based on movement time
                 }
             }
             isProcessingQueue = false // Mark the queue as processed once it's done
@@ -357,34 +353,85 @@ class CarViewModel(
     }
 
     private fun movementViaBluetooth(
-        action: String,
-        distance:Float,
         nextX: Float = 0f,
         nextY: Float =0f,
         nextOrientation: String = ""
     ){
+        if (car.value != null) {
 
-        Log.d("CarViewModel", "action = $action, distance = $distance")
-        when (action){
-            "Forward" -> straightMovement(distance = distance, forward = true)
-            "Forward left" -> forwardLeft()
-            "Forward right" -> forwardRight()
-            "Backward" -> straightMovement(distance = distance, forward = false)
-            "Backward left" -> backwardLeft()
-            "Backward right" -> backwardRight()
-            else -> {
-                // do nothing
+            val currentX = car.value!!.x
+            val currentY = car.value!!.y
+
+            val nextOri: Orientation = when (nextOrientation) {
+                "N" -> Orientation.N
+                "S" -> Orientation.S
+                "E" -> Orientation.E
+                "W" -> Orientation.W
+                else -> Orientation.N
             }
-        }
-        val nextOri: Orientation = when (nextOrientation){
-            "N" -> Orientation.N
-            "S" -> Orientation.S
-            "E" -> Orientation.E
-            "W" -> Orientation.W
-            else -> Orientation.N
-        }
 
-       car.value?.let { sharedViewModel.setCar(positionX = nextX, positionY = nextY, orientation = nextOri ) }
+            Log.d("MovementMessage", "nextOri: $nextOri")
+
+            val changeX = nextX - currentX
+            val changeY = nextY - currentY
+
+            when(nextOri){
+                Orientation.N ->{
+                    if (changeY > 0){
+                        if (changeX > 0) forwardRight()
+                        else if (changeX < 0) forwardLeft()
+                        else {
+                            straightMovement(distance = changeY, forward = true)
+                        }
+                    }
+                    else {
+                        if (changeX > 0) backwardRight()
+                        else if (changeX < 0) forwardLeft()
+                        else  straightMovement(distance = -changeY, forward = false)
+                    }
+                }
+                Orientation.E -> {
+                    if (changeX > 0){
+                        if (changeY > 0) forwardLeft()
+                        else if (changeY < 0) forwardRight()
+                        else  straightMovement(distance = changeX, forward = true)
+                    }
+                    else {
+                        if (changeY > 0) backwardLeft()
+                        else if (changeY < 0) backwardRight()
+                        else  straightMovement(distance = -changeX, forward = false)
+                    }
+                }
+                Orientation.S -> {
+                    if (changeY < 0){
+                        if (changeX > 0) forwardRight()
+                        else if (changeX < 0) forwardLeft()
+                        else  straightMovement(distance = -changeY, forward = true)
+                    }
+                    else {
+                        if (changeX > 0) backwardRight()
+                        else if (changeX < 0) backwardLeft()
+                        else  straightMovement(distance = changeY, forward = false)
+                    }
+                }
+                Orientation.W -> {
+                    if (changeX < 0){
+                        if (changeY > 0) forwardRight()
+                        else if (changeY < 0) forwardLeft()
+                        else  straightMovement(distance = -changeX, forward = true)
+                    }
+                    else {
+                        if (changeY > 0) backwardRight()
+                        else if (changeY < 0) backwardLeft()
+                        else  straightMovement(distance = changeX, forward = false)
+                    }
+                }
+                else -> {
+                    // Do nothing
+                }
+            }
+//            sharedViewModel.setCar(positionX = nextX, positionY = nextY, orientation = nextOri )
+        }
     }
 
     private fun straightMovement(distance: Float, forward: Boolean) {
@@ -394,8 +441,10 @@ class CarViewModel(
             viewModelScope.launch {
                 for (i in 0 until stepsToMove) {
                     if (forward) {
+                        Log.d("MovementMessage", "forward")
                         startMovement({ isMovingForward = true })
                     } else {
+                        Log.d("MovementMessage", "backward")
                         startMovement({ isMovingBackward = true })
                     }
 
@@ -407,6 +456,7 @@ class CarViewModel(
     }
 
     private fun forwardRight() {
+        Log.d("MovementMessage", "forwardLeft")
         actualCarTurningMovement(
             setVerticalMovementFlag = { isMovingForward = true },
             setHorizontalMovementFlag = { isTurningRight = true },
@@ -415,6 +465,7 @@ class CarViewModel(
     }
 
     private fun backwardRight() {
+        Log.d("MovementMessage", "backwardRight")
         actualCarTurningMovement(
             setVerticalMovementFlag = { isMovingBackward = true },
             setHorizontalMovementFlag = { isTurningLeft = true },
@@ -423,6 +474,7 @@ class CarViewModel(
     }
 
     private fun forwardLeft() {
+        Log.d("MovementMessage", "forwardLeft")
         actualCarTurningMovement(
             setVerticalMovementFlag = { isMovingForward = true },
             setHorizontalMovementFlag = { isTurningLeft = true },
@@ -431,6 +483,7 @@ class CarViewModel(
     }
 
     private fun backwardLeft() {
+        Log.d("MovementMessage", "backwardLeft")
         actualCarTurningMovement(
             setVerticalMovementFlag = { isMovingBackward = true },
             setHorizontalMovementFlag = { isTurningRight = true },

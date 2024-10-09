@@ -360,7 +360,7 @@ open class BluetoothViewModel @Inject constructor(
         // Check if the message is an instance of MovementMessage
         if (message is MovementMessage) {
             // Log the received message
-            Log.d("BluetoothViewModel", "Received MovementMessage: $message")
+            Log.d("MovementMessage", "Received MovementMessage: $message")
 
             // Enqueue the movement message into the carViewModel's queue
             carViewModel.enqueueMovementMessage(message)

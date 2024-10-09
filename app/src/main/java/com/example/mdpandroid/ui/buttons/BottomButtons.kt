@@ -3,38 +3,27 @@ package com.example.mdpandroid.ui.buttons
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.mdpandroid.R
 import com.example.mdpandroid.data.model.Modes
+import com.example.mdpandroid.domain.BeginMessage
 import com.example.mdpandroid.domain.StartMessage
 import com.example.mdpandroid.ui.bluetooth.BluetoothViewModel
 import com.example.mdpandroid.ui.safeNavigate
@@ -48,17 +37,48 @@ fun BottomButtons(
     sharedViewModel: SharedViewModel,
     bluetoothViewModel: BluetoothViewModel = hiltViewModel() // Inject BluetoothViewModel via Hilt
 ) {
-    // Function to handle the "Start" button click event
-    fun handleStartClick() {
+    // Function to handle single click
+    fun handleSingleClick() {
         val currentMode = sharedViewModel.mode.value
+        val car = sharedViewModel.car.value
 
-        // Check if the current mode is not IDLE
+        if (car == null) {
+            sharedViewModel.showSnackbar(
+                "No car found. Set car position first.",
+                SnackbarDuration.Short
+            )
+            return
+        }
+
+        val obstacles = sharedViewModel.obstacles.toList()
+        val targets = sharedViewModel.target.toList()
+
+        val startMessage = StartMessage(
+            car = car,
+            obstacles = obstacles,
+            target = targets,
+            mode = if (currentMode == Modes.IMAGERECOGNITION) 0 else 1,
+            senderName = "Android Device",
+            isFromLocalUser = true
+        )
+
+        val startMessageJson = Json.encodeToString(startMessage)
+        Log.d("StartMessage", "StartMessage JSON: $startMessageJson")
+
+        try {
+            bluetoothViewModel.sendMessage(startMessage)
+        } catch (e: Exception) {
+            Log.e("StartMessage", "Failed to send StartMessage", e)
+            sharedViewModel.showSnackbar("Failed to send message.", SnackbarDuration.Short)
+        }
+    }
+
+    // Function to handle double click
+    fun handleDoubleClick() {
+        val currentMode = sharedViewModel.mode.value
         if (currentMode != Modes.IDLE) {
-
-            // Extract car, obstacles, and targets from SharedViewModel
             val car = sharedViewModel.car.value
             if (car == null) {
-                // Show snackbar if no car is available
                 sharedViewModel.showSnackbar(
                     "No car found. Set car position first.",
                     SnackbarDuration.Short
@@ -69,20 +89,16 @@ fun BottomButtons(
             val obstacles = sharedViewModel.obstacles.toList()
             val targets = sharedViewModel.target.toList()
 
-            // Create a StartMessage with the extracted data
-            val startMessage = StartMessage(
+            val startMessage = BeginMessage(
                 car = car,
                 obstacles = obstacles,
                 target = targets,
                 mode = if (currentMode == Modes.IMAGERECOGNITION) 0 else 1,
-                senderName = "Android Device", // Modify as needed
+                senderName = "Android Device",
                 isFromLocalUser = true
             )
 
-            // Serialize StartMessage to JSON
             val startMessageJson = Json.encodeToString(startMessage)
-
-            // Log the StartMessage in JSON form
             Log.d("StartMessage", "StartMessage JSON: $startMessageJson")
 
             try {
@@ -93,66 +109,62 @@ fun BottomButtons(
                 sharedViewModel.showSnackbar("Failed to send message.", SnackbarDuration.Short)
             }
         } else {
-            // Show snackbar if mode is IDLE
             sharedViewModel.showSnackbar("Please select a mode", SnackbarDuration.Short)
         }
     }
 
     // Layout for the buttons
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Button(
-            onClick = { navController.safeNavigate("bluetooth") },
-            modifier = Modifier,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent
-            ),
-            content = {
-                Box(
-                    modifier = Modifier
-                        .background(Color.Transparent),
-                    contentAlignment = Alignment.Center // Align content to the center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.menu_text_button), // Your image resource
-                        contentDescription = "Menu Button",
-                        modifier = Modifier
-                            .background(Color.Transparent)
-                            .scale(1.6f)
+        // First Button: Navigate to Bluetooth
+
+        Box(
+            modifier = Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = { navController.safeNavigate("bluetooth") }
                     )
                 }
-            }
-        )
+                .background(Color.Transparent),
+            contentAlignment = Alignment.Center // Align content to the center
 
-        Spacer(modifier = Modifier.width(8.dp)) // Added more padding between buttons
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.menu_text_button), // Your image resource
+                contentDescription = "Menu Button",
+                modifier = Modifier
+                    .background(Color.Transparent)
+            )
+        }
 
-        Button(
-            onClick = { handleStartClick() },
-            shape = CircleShape,
-            modifier = Modifier,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent
-            ),
-            content = {
-                Box(
-                    modifier = Modifier
-                        .background(Color.Transparent),
-                    contentAlignment = Alignment.Center // Align content to the center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.start_text_button), // Your image resource
-                        contentDescription = "Menu Button",
-                        modifier = Modifier
-                            .background(Color.Transparent)
-                            .scale(1.6f)
+
+        Spacer(modifier = Modifier.width(15.dp)) // Added padding between buttons
+
+        // Second Button: Handle single and double tap
+
+        Box(
+            modifier = Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = { handleSingleClick() },   // Single tap detection
+                        onDoubleTap = { handleDoubleClick() } // Double tap detection
                     )
                 }
-            }
-        )
+                .background(Color.Transparent),
+            contentAlignment = Alignment.Center // Align content to the center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.start_text_button), // Your image resource
+                contentDescription = "Menu Button",
+                modifier = Modifier
+                    .background(Color.Transparent)
+            )
+        }
     }
 }
+
+
 

@@ -51,7 +51,7 @@ class AndroidBluetoothController(
     private val bluetoothAdapter by lazy {
         bluetoothManager?.adapter
     }
-
+//Received message
     private var dataTransferService: BluetoothDataTransferService? = null
 
     override var lastConnectedDevice: BluetoothDeviceDomain? = null  // Track the last paired device
@@ -358,7 +358,6 @@ class AndroidBluetoothController(
                             Log.d("Bluetooth", "Message transfer succeeded: $message") // Log the successful transfer
                             ConnectionResult.TransferSucceeded(message)
                         }
-
                     )
                 } ?: run {
                     emit(ConnectionResult.Error("Failed to create client socket"))
@@ -408,6 +407,7 @@ class AndroidBluetoothController(
             _isConnected.update { false }
         }
     }
+
 
     override fun release() {
         if (isFoundDeviceReceiverRegistered) {

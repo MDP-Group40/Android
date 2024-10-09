@@ -42,7 +42,22 @@ data class InfoMessage(
 
 @Serializable
 @SerialName("start")
-data class StartMessage(
+data class  StartMessage(
+    val obstacles: List<Obstacle>,
+    val car: Car,
+    val target: List<Target>,
+    val mode: Int,
+    override val senderName: String,
+    override val isFromLocalUser: Boolean
+) : BluetoothMessage() {
+    override fun toString(): String {
+        return "Car = (${car.x}, ${car.y}) Obstacle List=${obstacles.size} Target List = ${target.size}, mode = {$mode}"
+    }
+}
+
+@Serializable
+@SerialName("begin")
+data class  BeginMessage(
     val obstacles: List<Obstacle>,
     val car: Car,
     val target: List<Target>,
@@ -67,7 +82,7 @@ data class MovementMessage(
     override val isFromLocalUser: Boolean
 ) : BluetoothMessage() {
     override fun toString(): String {
-        return "New Car Coord = ($nextX, $nextY), Next Facing = $nextOrientation Direction to move = $direction, Distance to move =$distance"
+        return "New Car Coord = ($nextX, $nextY), Next Facing = $nextOrientation"
     }
 }
 
