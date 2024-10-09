@@ -15,7 +15,7 @@ data class Obstacle(
     var y: Float,
     var targetID: Int,
     var facing: Facing? = null,// Make sure `Facing` is serializable as well
-    var numberOnObstacle: Int? = null, // number on object
+    var numberOnObstacle: String? = null, // number on object
     val width: Int = 1,
     val height: Int = 1
 ) {

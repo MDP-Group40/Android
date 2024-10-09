@@ -71,7 +71,7 @@ class SharedViewModel @Inject constructor() : ViewModel() {
         car.value = newCar
     }
 
-    fun setNumberOnObstacle(targetID: Int, numberOnObstacle: Int) {
+    fun setNumberOnObstacle(targetID: Int, numberOnObstacle: String) {
         // Find the obstacle with the given targetID
         val obstacle = obstacles.find { it.targetID == targetID }
 

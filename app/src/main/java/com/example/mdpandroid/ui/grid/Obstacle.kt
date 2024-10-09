@@ -27,7 +27,7 @@ import com.example.mdpandroid.data.model.Facing
 fun Obstacle(
     cellSize: Int,
     targetID: Int,
-    numberOnObstacle: Int?,
+    numberOnObstacle: String?,
     initialFacing: Facing?,
     isEditing: Boolean = false,
     viewModel: DirectionSelectorViewModel,

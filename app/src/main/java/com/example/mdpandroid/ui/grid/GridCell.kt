@@ -24,7 +24,7 @@ fun GridCell(
     isObstacle: Boolean,
     isTarget: Boolean,
     onClick: () -> Unit,
-    numberOnObstacle: Int?,
+    numberOnObstacle: String?,
     facing: Facing?,
     targetID: Int? = null,
     isEditing: Boolean,

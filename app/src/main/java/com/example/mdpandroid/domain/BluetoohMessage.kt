@@ -74,8 +74,14 @@ data class MovementMessage(
 @Serializable
 @SerialName("image")
 data class ImageMessage(
+    val value: String,
     val targetId: Int,
-    val numberOnObstacle: Int,
+    val numberOnObstacle: String,
+    val nextX: Int,
+    val nextY: Int,
+    val nextOrientation: String,
+    val direction: String,
+    val distance: Int,
     override val senderName: String,
     override val isFromLocalUser: Boolean
 ) : BluetoothMessage() {
