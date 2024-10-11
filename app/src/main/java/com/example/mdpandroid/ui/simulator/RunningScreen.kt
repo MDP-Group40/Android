@@ -27,6 +27,7 @@ import com.example.mdpandroid.data.model.Modes
 import com.example.mdpandroid.ui.bluetooth.BluetoothViewModel
 import com.example.mdpandroid.ui.bluetooth.components.UpdatesList
 import com.example.mdpandroid.ui.car.Car
+import com.example.mdpandroid.ui.footer.InformationDisplay
 import com.example.mdpandroid.ui.grid.DirectionSelectorViewModel
 import com.example.mdpandroid.ui.grid.DirectionSelectorViewModelFactory
 import com.example.mdpandroid.ui.grid.GridMap
@@ -102,6 +103,7 @@ fun RunningScreen(
                 }
             }
         }
+        InformationDisplay(viewModel = sharedViewModel)
         UpdatesList(state = state)
     }
 }

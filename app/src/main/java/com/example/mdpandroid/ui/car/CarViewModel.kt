@@ -68,8 +68,6 @@ class CarViewModel(
     override fun handleButtonA() {
         // If button A is used for moving forward, this can call handleButtonUp
         handleButtonUp()
-
-//        movementViaBluetooth("Forward left", 20f)
     }
 
     override fun handleButtonB() {
@@ -320,7 +318,6 @@ class CarViewModel(
     }
 
     // Bluetooth Connection Movement
-
     // Function to add movement commands to the queue
     fun enqueueMovementMessage(message: MovementMessage) {
         movementQueue.offer(message) // Add the message to the queue
@@ -337,15 +334,27 @@ class CarViewModel(
             while (movementQueue.isNotEmpty()) {
                 val message = movementQueue.poll() // Get and remove the next command from the queue
                 if (message != null) {
+
+                    val nextX = message.nextX
+                    val nextY = message.nextY
+
+                    val nextOri: Orientation = when (message.nextOrientation) {
+                        "N" -> Orientation.N
+                        "S" -> Orientation.S
+                        "E" -> Orientation.E
+                        "W" -> Orientation.W
+                        else -> Orientation.N
+                    }
                     // Process the movement command
-                    movementViaBluetooth(
-                        nextX = message.nextX,
-                        nextY = message.nextY,
-                        nextOrientation = message.nextOrientation
-                    )
+//                    movementViaBluetooth(
+//                        nextX = nextX,
+//                        nextY = nextY,
+//                    )
 
                     // Wait for movement to complete before processing the next command
-                    delay(4000L) // Adjust this delay based on movement time
+                    sharedViewModel.setCar(positionX = nextX, positionY = nextY, orientation = nextOri )
+                    delay(2000L) // Adjust this delay based on movement time
+
                 }
             }
             isProcessingQueue = false // Mark the queue as processed once it's done
@@ -354,83 +363,78 @@ class CarViewModel(
 
     private fun movementViaBluetooth(
         nextX: Float = 0f,
-        nextY: Float =0f,
-        nextOrientation: String = ""
+        nextY: Float =0f
     ){
         if (car.value != null) {
 
             val currentX = car.value!!.x
             val currentY = car.value!!.y
-
-            val nextOri: Orientation = when (nextOrientation) {
-                "N" -> Orientation.N
-                "S" -> Orientation.S
-                "E" -> Orientation.E
-                "W" -> Orientation.W
-                else -> Orientation.N
-            }
-
-            Log.d("MovementMessage", "nextOri: $nextOri")
+            val currentOri = car.value!!.orientation
 
             val changeX = nextX - currentX
             val changeY = nextY - currentY
 
-            when(nextOri){
+            if (changeX.toInt() == 0 && changeY.toInt() == 0) {
+                Log.d("MovementMessage", "do nothing")
+                return
+            }
+
+
+            when(currentOri){
                 Orientation.N ->{
                     if (changeY > 0){
                         if (changeX > 0) forwardRight()
                         else if (changeX < 0) forwardLeft()
                         else {
-                            straightMovement(distance = changeY, forward = true)
+                            straightMovement(distance = changeY * 10, forward = true)
                         }
                     }
                     else {
                         if (changeX > 0) backwardRight()
                         else if (changeX < 0) forwardLeft()
-                        else  straightMovement(distance = -changeY, forward = false)
+                        else  straightMovement(distance = -(changeY*10), forward = false)
                     }
                 }
                 Orientation.E -> {
                     if (changeX > 0){
                         if (changeY > 0) forwardLeft()
                         else if (changeY < 0) forwardRight()
-                        else  straightMovement(distance = changeX, forward = true)
+                        else  straightMovement(distance = changeX*10, forward = true)
                     }
                     else {
                         if (changeY > 0) backwardLeft()
                         else if (changeY < 0) backwardRight()
-                        else  straightMovement(distance = -changeX, forward = false)
+                        else  straightMovement(distance = -(changeX*10), forward = false)
                     }
                 }
                 Orientation.S -> {
                     if (changeY < 0){
-                        if (changeX > 0) forwardRight()
-                        else if (changeX < 0) forwardLeft()
-                        else  straightMovement(distance = -changeY, forward = true)
+                        if (changeX > 0) forwardLeft()
+                        else if (changeX < 0) forwardRight()
+                        else  straightMovement(distance = -(changeY*10), forward = true)
                     }
                     else {
-                        if (changeX > 0) backwardRight()
-                        else if (changeX < 0) backwardLeft()
-                        else  straightMovement(distance = changeY, forward = false)
+                        if (changeX > 0) backwardLeft()
+                        else if (changeX < 0) backwardRight()
+                        else  straightMovement(distance = changeY*10, forward = false)
                     }
                 }
                 Orientation.W -> {
                     if (changeX < 0){
                         if (changeY > 0) forwardRight()
                         else if (changeY < 0) forwardLeft()
-                        else  straightMovement(distance = -changeX, forward = true)
+                        else  straightMovement(distance = -(changeX*10), forward = true)
                     }
                     else {
                         if (changeY > 0) backwardRight()
                         else if (changeY < 0) backwardLeft()
-                        else  straightMovement(distance = changeX, forward = false)
+                        else  straightMovement(distance = changeX*10, forward = false)
                     }
                 }
                 else -> {
                     // Do nothing
                 }
             }
-            // sharedViewModel.setCar(positionX = nextX, positionY = nextY, orientation = nextOri )
         }
     }
 

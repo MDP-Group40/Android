@@ -28,7 +28,6 @@ fun UpdatesList(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
             .background(Color.Black),  // Set the background to black as per the image
         horizontalAlignment = Alignment.Start
     ) {
@@ -47,7 +46,7 @@ fun UpdatesList(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(213.dp)  // Set a fixed height for scrolling; you can adjust this
+                .height(140.dp)  // Set a fixed height for scrolling; you can adjust this
         ) {
             // List of messages
             LazyColumn(
