@@ -210,20 +210,20 @@ fun DeviceItem(
                     strokeWidth = 2.dp
                 )
             }
-            isConnected -> {
-                Image(
-                    imageVector = Icons.Default.Check,  // Use built-in checkmark icon
-                    contentDescription = "Connected",
-                    modifier = Modifier.size(24.dp),
-                    colorFilter = ColorFilter.tint(Color.Green) // Set icon color to green
-                )
-            }
             hasFailed -> {
                 Image(
                     imageVector = Icons.Default.Close,  // Use built-in close icon for failure
                     contentDescription = "Connection Failed",
                     modifier = Modifier.size(24.dp),
                     colorFilter = ColorFilter.tint(Color.Red)  // Set icon color to red
+                )
+            }
+            isConnected -> {
+                Image(
+                    imageVector = Icons.Default.Check,  // Use built-in checkmark icon
+                    contentDescription = "Connected",
+                    modifier = Modifier.size(24.dp),
+                    colorFilter = ColorFilter.tint(Color.Green) // Set icon color to green
                 )
             }
         }

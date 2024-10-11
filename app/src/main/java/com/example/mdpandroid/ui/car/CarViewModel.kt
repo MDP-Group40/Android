@@ -430,7 +430,7 @@ class CarViewModel(
                     // Do nothing
                 }
             }
-//            sharedViewModel.setCar(positionX = nextX, positionY = nextY, orientation = nextOri )
+            // sharedViewModel.setCar(positionX = nextX, positionY = nextY, orientation = nextOri )
         }
     }
 

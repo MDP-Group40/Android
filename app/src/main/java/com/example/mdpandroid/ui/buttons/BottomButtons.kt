@@ -30,6 +30,54 @@ import com.example.mdpandroid.ui.safeNavigate
 import com.example.mdpandroid.ui.shared.SharedViewModel
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.height
+
+@Composable
+fun ClickEffectBox(
+    onClick: () -> Unit,
+    imageResource: Int,
+    contentDescription: String,
+    modifier: Modifier = Modifier
+) {
+    var clicked by remember { mutableStateOf(false) }
+
+    // Add a slight animation for the effect
+    val scale by animateFloatAsState(if (clicked) 0.9f else 1f, label = "") // Shrinks the button slightly
+
+    // LaunchedEffect to handle reset after click
+    LaunchedEffect(clicked) {
+        if (clicked) {
+            delay(100) // Simulate a delay for the click effect
+            clicked = false // Reset clicked state after delay
+        }
+    }
+
+    // Box that handles the click
+    Box(
+        modifier = modifier
+            .scale(scale) // Applies the scaling effect
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        clicked = true
+                        onClick()
+                    }
+                )
+            }
+            .background(Color.Transparent),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = imageResource),
+            contentDescription = contentDescription,
+            modifier = Modifier
+                .background(Color.Transparent)
+        )
+    }
+}
 
 @Composable
 fun BottomButtons(
@@ -39,42 +87,47 @@ fun BottomButtons(
 ) {
     // Function to handle single click
     fun handleSingleClick() {
+        Log.d("UI", "handleSingleClick called")
         val currentMode = sharedViewModel.mode.value
-        val car = sharedViewModel.car.value
+        if (currentMode != Modes.IDLE) {
 
-        if (car == null) {
-            sharedViewModel.showSnackbar(
-                "No car found. Set car position first.",
-                SnackbarDuration.Short
+            val car = sharedViewModel.car.value
+
+            if (car == null) {
+                sharedViewModel.showSnackbar(
+                    "No car found. Set car position first.",
+                    SnackbarDuration.Short
+                )
+                return
+            }
+
+            val obstacles = sharedViewModel.obstacles.toList()
+            val targets = sharedViewModel.target.toList()
+
+            val startMessage = StartMessage(
+                car = car,
+                obstacles = obstacles,
+                target = targets,
+                mode = if (currentMode == Modes.IMAGERECOGNITION) 0 else 1,
+                senderName = "Android Device",
+                isFromLocalUser = true
             )
-            return
-        }
 
-        val obstacles = sharedViewModel.obstacles.toList()
-        val targets = sharedViewModel.target.toList()
+            val startMessageJson = Json.encodeToString(startMessage)
+            Log.d("StartMessage", "StartMessage JSON: $startMessageJson")
 
-        val startMessage = StartMessage(
-            car = car,
-            obstacles = obstacles,
-            target = targets,
-            mode = if (currentMode == Modes.IMAGERECOGNITION) 0 else 1,
-            senderName = "Android Device",
-            isFromLocalUser = true
-        )
-
-        val startMessageJson = Json.encodeToString(startMessage)
-        Log.d("StartMessage", "StartMessage JSON: $startMessageJson")
-
-        try {
-            bluetoothViewModel.sendMessage(startMessage)
-        } catch (e: Exception) {
-            Log.e("StartMessage", "Failed to send StartMessage", e)
-            sharedViewModel.showSnackbar("Failed to send message.", SnackbarDuration.Short)
+            try {
+                bluetoothViewModel.sendMessage(startMessage)
+            } catch (e: Exception) {
+                Log.e("StartMessage", "Failed to send StartMessage", e)
+                sharedViewModel.showSnackbar("Failed to send message.", SnackbarDuration.Short)
+            }
         }
     }
 
     // Function to handle double click
     fun handleDoubleClick() {
+        Log.d("UI", "handleDoubleClick called")
         val currentMode = sharedViewModel.mode.value
         if (currentMode != Modes.IDLE) {
             val car = sharedViewModel.car.value
@@ -113,58 +166,32 @@ fun BottomButtons(
         }
     }
 
-    // Layout for the buttons
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // First Button: Navigate to Bluetooth
+        // For your first button
+        ClickEffectBox(
+            onClick = { navController.safeNavigate("bluetooth") },
+            imageResource = R.drawable.menu_text_button,
+            contentDescription = "Menu Button"
+        )
+        Spacer(modifier = Modifier.width(12.dp))
 
-        Box(
-            modifier = Modifier
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = { navController.safeNavigate("bluetooth") }
-                    )
-                }
-                .background(Color.Transparent),
-            contentAlignment = Alignment.Center // Align content to the center
+        // For your second button
+        ClickEffectBox(
+            onClick = { handleSingleClick() },
+            imageResource = R.drawable.select_text_button,
+            contentDescription = "Start Button"
+        )
+        Spacer(modifier = Modifier.width(12.dp))
 
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.menu_text_button), // Your image resource
-                contentDescription = "Menu Button",
-                modifier = Modifier
-                    .background(Color.Transparent)
-            )
-        }
-
-
-        Spacer(modifier = Modifier.width(15.dp)) // Added padding between buttons
-
-        // Second Button: Handle single and double tap
-
-        Box(
-            modifier = Modifier
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = { handleSingleClick() },   // Single tap detection
-                        onDoubleTap = { handleDoubleClick() } // Double tap detection
-                    )
-                }
-                .background(Color.Transparent),
-            contentAlignment = Alignment.Center // Align content to the center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.start_text_button), // Your image resource
-                contentDescription = "Menu Button",
-                modifier = Modifier
-                    .background(Color.Transparent)
-            )
-        }
+        // For your third button
+        ClickEffectBox(
+            onClick = { handleDoubleClick() },
+            imageResource = R.drawable.start_text_button,
+            contentDescription = "Select Button"
+        )
     }
 }
-
-
-
