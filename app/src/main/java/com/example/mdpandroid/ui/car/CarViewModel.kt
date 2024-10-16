@@ -335,8 +335,20 @@ class CarViewModel(
                 val message = movementQueue.poll() // Get and remove the next command from the queue
                 if (message != null) {
 
+//                    val currentX = car.value!!.x
+//                    val currentY = car.value!!.y
+//                    val currentOri = car.value!!.orientation
+
                     val nextX = message.nextX
                     val nextY = message.nextY
+
+//                    val changeY = nextY - currentY
+//                    val changeX = nextX - currentX
+
+//                    if (changeX.toInt() == 0 && changeY.toInt() == 0) {
+//                        Log.d("MovementMessage", "do nothing")
+//                        return@launch
+//                    }
 
                     val nextOri: Orientation = when (message.nextOrientation) {
                         "N" -> Orientation.N
@@ -345,15 +357,18 @@ class CarViewModel(
                         "W" -> Orientation.W
                         else -> Orientation.N
                     }
-                    // Process the movement command
+//                    // Process the movement command
 //                    movementViaBluetooth(
-//                        nextX = nextX,
-//                        nextY = nextY,
+//                        changeX = changeY,
+//                        changeY = changeX,
+//                        currentOri = currentOri
 //                    )
+
+                    delay(500L) // Adjust this delay based on movement time
 
                     // Wait for movement to complete before processing the next command
                     sharedViewModel.setCar(positionX = nextX, positionY = nextY, orientation = nextOri )
-                    delay(2000L) // Adjust this delay based on movement time
+                    delay(500L) // Adjust this delay based on movement time
 
                 }
             }
@@ -362,23 +377,11 @@ class CarViewModel(
     }
 
     private fun movementViaBluetooth(
-        nextX: Float = 0f,
-        nextY: Float =0f
+        changeY: Float = 0f,
+        changeX: Float =0f,
+        currentOri: Orientation
     ){
         if (car.value != null) {
-
-            val currentX = car.value!!.x
-            val currentY = car.value!!.y
-            val currentOri = car.value!!.orientation
-
-            val changeX = nextX - currentX
-            val changeY = nextY - currentY
-
-            if (changeX.toInt() == 0 && changeY.toInt() == 0) {
-                Log.d("MovementMessage", "do nothing")
-                return
-            }
-
 
             when(currentOri){
                 Orientation.N ->{
@@ -391,7 +394,7 @@ class CarViewModel(
                     }
                     else {
                         if (changeX > 0) backwardRight()
-                        else if (changeX < 0) forwardLeft()
+                        else if (changeX < 0) backwardLeft()
                         else  straightMovement(distance = -(changeY*10), forward = false)
                     }
                 }

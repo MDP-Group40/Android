@@ -62,7 +62,7 @@ fun ConnectingTab(
                         sharedViewModel = sharedViewModel,
                         carViewModel = carViewModel
                     )},
-                    connectToLastDevice = { bluetoothViewModel.reconnectToLastPairedDevice() },
+                    connectToLastDevice = { bluetoothViewModel.reconnectToLastPairedDevice(sharedViewModel, carViewModel) },
                     modifier = Modifier.verticalScroll(rememberScrollState()) // Make it scrollable
                 )
             }

@@ -12,6 +12,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.util.Log
+import java.util.concurrent.Semaphore
 import com.example.mdpandroid.domain.BluetoothController
 import com.example.mdpandroid.domain.BluetoothDeviceDomain
 import com.example.mdpandroid.domain.BluetoothMessage
@@ -52,6 +53,9 @@ class AndroidBluetoothController(
         bluetoothManager?.adapter
     }
 //Received message
+    // Semaphore to control reconnection attempts
+    private val reconnectSemaphore = Semaphore(1)
+
     private var dataTransferService: BluetoothDataTransferService? = null
 
     override var lastConnectedDevice: BluetoothDeviceDomain? = null  // Track the last paired device
@@ -71,6 +75,7 @@ class AndroidBluetoothController(
     private val _errors = MutableSharedFlow<String>()
     override val errors: SharedFlow<String>
         get() = _errors.asSharedFlow()
+
 
     private val foundDeviceReceiver = FoundDeviceReceiver { device ->
         _scannedDevices.update { devices ->
@@ -134,7 +139,6 @@ class AndroidBluetoothController(
             }
         }
     }
-
 
     override fun isBluetoothEnabled(): Boolean {
         return bluetoothAdapter?.isEnabled == true
@@ -283,21 +287,38 @@ class AndroidBluetoothController(
         }.flowOn(Dispatchers.IO)
     }
 
-    // Method to start a connection with retry logic
+    // Reconnection method with semaphore check
     override suspend fun reconnectToLastDevice(retries: Int): ConnectionResult {
-        Log.d("AndroidBluetoothController","Inside reconnectToLastDevice")
-        val device = lastConnectedDevice ?: return ConnectionResult.Error("No device to reconnect")
-        return retryConnectionWithBackoff(device, retries)
+        Log.d("AndroidBluetoothController", "Inside reconnectToLastDevice")
+
+        // Attempt to acquire the semaphore
+        if (!reconnectSemaphore.tryAcquire()) {
+            Log.d("AndroidBluetoothController", "Reconnection already in progress, skipping.")
+            return ConnectionResult.Error("Reconnection in progress")
+        }
+
+        closeConnection()
+
+        try {
+            val device = lastConnectedDevice ?: return ConnectionResult.Error("No device to reconnect")
+            return retryConnectionWithBackoff(device, retries)
+        } finally {
+            // Release the semaphore after the reconnection process completes
+            Log.d("AndroidBluetoothController", "Reconnection already is done, releasing semaphore.")
+            reconnectSemaphore.release()
+        }
     }
 
     private suspend fun retryConnectionWithBackoff(
         device: BluetoothDeviceDomain,
         retries: Int = 3
     ): ConnectionResult {
+
         var attempt = 0
+
         while (attempt < retries) {
             try {
-                Log.d("Bluetooth", "Attempt ${attempt + 1}: Trying to connect to the device")
+                Log.d("BluetoothController", "Attempt ${attempt + 1}: Trying to connect to the device")
                 // Close any existing socket before retrying
                 currentClientSocket?.close()
                 currentClientSocket = null
@@ -305,32 +326,30 @@ class AndroidBluetoothController(
                 startDiscovery()
                 delay(5000)  // Wait for 5 seconds to discover the device
 
-                // Attempt to reconnect
+                // Use first() instead of single() to avoid the exception
                 return connectToDevice(device).single()
+
             } catch (e: IOException) {
-                Log.e("Bluetooth", "Retry connection attempt ${attempt + 1} failed: ${e.message}")
-                // Print the stack trace to make sure the exception is caught
+                Log.e("BluetoothController", "Retry connection attempt ${attempt + 1} failed: ${e.message}")
                 e.printStackTrace()
                 delay(2000L * (attempt + 1))  // Increased delay with backoff
                 attempt++
             } catch (e: Exception) {
-                // Catch all other exceptions
-                Log.e("Bluetooth", "Unexpected error during connection attempt ${attempt + 1}: ${e.message}")
+                Log.e("BluetoothController", "Unexpected error during connection attempt ${attempt + 1}: ${e.message}")
                 e.printStackTrace()
                 delay(2000L * (attempt + 1))
                 attempt++
             }
         }
+
         return ConnectionResult.Error("Failed after $retries retries")
     }
 
 
-
     override fun connectToDevice(device: BluetoothDeviceDomain): Flow<ConnectionResult> {
         return flow {
-            Log.d("Bluetooth", "Attempting to connect to device: ${device.address}")
+            Log.d("BluetoothController", "Attempting to connect to device: ${device.address}")
 
-            // Save the last connected device
             lastConnectedDevice = device
 
             try {
@@ -345,30 +364,24 @@ class AndroidBluetoothController(
                         socket.connect()
                     } ?: throw IOException("Connection timed out")
 
-                    // Initialize the DataTransferService after the connection is established
+                    // Initialize the DataTransferService only after the connection is established
                     dataTransferService = BluetoothDataTransferService(socket)
 
-                    Log.d("Bluetooth", "Connection established and DataTransferService initialized.")
-
+                    Log.d("BluetoothController", "Connection established and DataTransferService initialized.")
                     emit(ConnectionResult.ConnectionEstablished)
 
-                    // Start listening for incoming messages after establishing the connection
-                    emitAll(
-                        dataTransferService!!.listenForIncomingMessages().map { message ->
-                            Log.d("Bluetooth", "Message transfer succeeded: $message") // Log the successful transfer
-                            ConnectionResult.TransferSucceeded(message)
-                        }
-                    )
                 } ?: run {
                     emit(ConnectionResult.Error("Failed to create client socket"))
                 }
             } catch (e: IOException) {
-                Log.e("Bluetooth", "Connection failed with error: ${e.message}")
+                Log.e("BluetoothController", "Connection failed with error: ${e.message}")
+                stopDiscovery()
                 currentClientSocket?.close()
                 emit(ConnectionResult.Error("Connection was interrupted: ${e.message}"))
             }
         }.flowOn(Dispatchers.IO)
     }
+
 
     override suspend fun trySendMessage(bluetoothMessage: BluetoothMessage): BluetoothMessage? {
         Log.d("BluetoothController", "Attempting to send message: $bluetoothMessage")
@@ -400,13 +413,21 @@ class AndroidBluetoothController(
 
     override fun closeConnection() {
         CoroutineScope(Dispatchers.IO).launch(NonCancellable) {
-            currentClientSocket?.close()
-            currentServerSocket?.close()
-            currentClientSocket = null
-            currentServerSocket = null
-            _isConnected.update { false }
+            try {
+                dataTransferService?.close() // Close the data transfer service if open
+                dataTransferService = null // Set to null to reset it
+                currentClientSocket?.close() // Close the client socket
+                currentServerSocket?.close() // Close the server socket
+                currentClientSocket = null
+                currentServerSocket = null
+                _isConnected.update { false }
+                Log.d("BluetoothController", "Connection successfully closed.")
+            } catch (e: IOException) {
+                Log.e("BluetoothController", "Error while closing connection: ${e.message}")
+            }
         }
     }
+
 
 
     override fun release() {
@@ -450,4 +471,16 @@ class AndroidBluetoothController(
     companion object {
         const val SERVICE_UUID = "0b6a013a-01b8-4b6a-9a1c-1bea99419b71"
     }
+
+    override fun listenForIncomingMessages(): Flow<ConnectionResult> {
+        return dataTransferService?.listenForIncomingMessages()?.map { message ->
+            Log.d("BluetoothController", "Message transfer succeeded: $message")
+            ConnectionResult.TransferSucceeded(message)
+        } ?: flow {
+            Log.e("BluetoothController", "No DataTransferService initialized. Can't listen for messages.")
+            emit(ConnectionResult.Error("No DataTransferService initialized"))
+        }
+    }
+
+
 }

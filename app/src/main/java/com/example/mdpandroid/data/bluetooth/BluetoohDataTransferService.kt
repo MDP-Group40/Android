@@ -20,50 +20,51 @@ class BluetoothDataTransferService(
     private val socket: BluetoothSocket
 ) {
 
-    // Define a channel to hold incoming Bluetooth messages
-    private val bluetoothMessageChannel = Channel<BluetoothMessage>(capacity = Channel.UNLIMITED)
+    // Increase buffer capacity for handling multiple incoming messages
+    private val bluetoothMessageChannel = Channel<BluetoothMessage>(capacity = Channel.BUFFERED)
 
+    // Function to listen for incoming messages
     fun listenForIncomingMessages(): Flow<BluetoothMessage> {
-        Log.d("Bluetooth", "Getting ready to listen for incoming messages")
+        Log.d("Bluetooth", "Starting to listen for incoming messages")
 
         if (!socket.isConnected) {
             Log.e("Bluetooth", "Socket is not connected. Exiting.")
-            return bluetoothMessageChannel.receiveAsFlow() // Return an empty flow
+            return bluetoothMessageChannel.receiveAsFlow()
         }
 
-        val buffer = ByteArray(1024) // Buffer to hold the incoming message
+        val buffer = ByteArray(1024)  // Buffer to hold the incoming message
+
+        // Coroutine to listen for incoming messages and add them to the channel
         CoroutineScope(Dispatchers.IO).launch {
-            while (true) {
-                val byteCount = try {
-                    Log.d("Bluetooth", "Waiting for incoming data...")
-                    socket.inputStream.read(buffer) // Blocking call to read incoming data
-                } catch (e: IOException) {
-                    Log.e("Bluetooth", "Failed to read from input stream: ${e.message}")
-                    bluetoothMessageChannel.close(e) // Close the channel if there's an error
-                    return@launch
-                }
+            try {
+                while (true) {
+                    val byteCount = socket.inputStream.read(buffer)
+                    if (byteCount > 0) {
+                        val incomingMessage = buffer.decodeToString(endIndex = byteCount)
+                        val bluetoothMessage = try {
+                            SerializationConfig.json.decodeFromString<BluetoothMessage>(incomingMessage)
+                        } catch (e: Exception) {
+                            Log.e("Bluetooth", "Failed to deserialize message: ${e.message}")
+                            continue
+                        }
 
-                if (byteCount > 0) {
-                    val incomingMessage = buffer.decodeToString(endIndex = byteCount)
-
-                    try {
-                        val bluetoothMessage = SerializationConfig.json.decodeFromString<BluetoothMessage>(incomingMessage)
-                        Log.d("Bluetooth", "Received message: $bluetoothMessage")
-
-                        bluetoothMessageChannel.trySend(bluetoothMessage) // Add to the channel
-                    } catch (e: Exception) {
-                        Log.e("Bluetooth", "Failed to deserialize message: ${e.message}")
+                        // Enqueue the message into the channel
+                        Log.d("Bluetooth", "Enqueuing received message: $bluetoothMessage")
+                        bluetoothMessageChannel.trySend(bluetoothMessage)
+                    } else {
+                        Log.e("Bluetooth", "No data read from the stream.")
                     }
-                } else {
-                    Log.d("Bluetooth", "No data read from the stream. Byte count is 0.")
                 }
+            } catch (e: IOException) {
+                Log.e("Bluetooth", "Failed to read from input stream: ${e.message}")
+                bluetoothMessageChannel.close(e)
             }
         }
 
-        return bluetoothMessageChannel.receiveAsFlow() // Return the flow of messages
+        return bluetoothMessageChannel.receiveAsFlow()
     }
 
-    // Helper function to send a BluetoothMessage by serializing it to JSON
+    // Function to send a message
     suspend fun sendBluetoothMessage(bluetoothMessage: BluetoothMessage): Boolean {
         val messageJson = Json.encodeToString(bluetoothMessage)
         val messageBytes = messageJson.toByteArray()
@@ -71,23 +72,21 @@ class BluetoothDataTransferService(
         return sendMessage(messageBytes)
     }
 
-    // Function to send raw byte data to the Bluetooth socket
+    // Send raw data to the Bluetooth socket
     private suspend fun sendMessage(bytes: ByteArray): Boolean {
-        Log.d("Bluetooth", "Trying to send message in BluetoothDataTransferService")
         return withContext(Dispatchers.IO) {
             try {
-                socket.outputStream.write(bytes) // Write bytes to the socket output stream
+                socket.outputStream.write(bytes)
                 Log.d("Bluetooth", "Message sent successfully.")
+                true
             } catch (e: IOException) {
                 Log.e("Bluetooth", "Failed to send message: ${e.message}")
-                return@withContext false
+                false
             }
-
-            true
         }
     }
 
-    // Close the socket to release resources
+    // Close the socket and cleanup
     fun close() {
         try {
             socket.close()
@@ -97,4 +96,5 @@ class BluetoothDataTransferService(
         }
     }
 }
+
 

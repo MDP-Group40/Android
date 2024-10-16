@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -33,7 +34,7 @@ import javax.inject.Inject
 @HiltViewModel
 open class BluetoothViewModel @Inject constructor(
     private val bluetoothController: BluetoothController,
-): ViewModel() {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(BluetoothUiState())
     val state = combine(
@@ -47,8 +48,6 @@ open class BluetoothViewModel @Inject constructor(
             messages = if (state.isConnected) state.messages else emptyList()
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
-
-    private var deviceConnectionJob: Job? = null
 
     private val _isBluetoothEnabled = MutableStateFlow(bluetoothController.isBluetoothEnabled())
     val isBluetoothEnabled: StateFlow<Boolean> = _isBluetoothEnabled
@@ -102,7 +101,8 @@ open class BluetoothViewModel @Inject constructor(
     fun connectToDevice(
         device: BluetoothDeviceDomain,
         sharedViewModel: SharedViewModel,
-        carViewModel: CarViewModel) {
+        carViewModel: CarViewModel
+    ) {
         Log.d("BluetoothViewModel", "Starting connection to device: ${device.address}")
 
         _state.update {
@@ -118,62 +118,43 @@ open class BluetoothViewModel @Inject constructor(
             try {
                 Log.d("BluetoothViewModel", "Attempting to connect with timeout of 10 seconds")
                 withTimeout(10000) {
-                    bluetoothController.connectToDevice(device)
-                        .onEach { result ->
-                            when (result) {
-                                is ConnectionResult.ConnectionEstablished -> {
-                                    Log.d("BluetoothViewModel", "Connection established with device: ${device.address}")
+                    val connectionResult = bluetoothController.connectToDevice(device).single()
 
-                                    _state.update {
-                                        it.copy(
-                                            isConnecting = false,
-                                            isConnected = true,
-                                            connectingDevice = null,
-                                            connectedDevice = BluetoothDevice(
-                                                device.name,
-                                                device.address
-                                            ),
-                                            failedDevice = null
-                                        )
-                                    }
-                                }
+                    when (connectionResult) {
+                        is ConnectionResult.ConnectionEstablished -> {
+                            Log.d("BluetoothViewModel", "Connection established with device: ${device.address}")
 
-                                is ConnectionResult.Error -> {
-                                    Log.e("BluetoothViewModel", "Connection error with device: ${device.address}, message: ${result.message}")
-
-                                    _state.update {
-                                        it.copy(
-                                            isConnecting = false,
-                                            connectingDevice = null,
-                                            failedDevice = device,
-                                            errorMessage = result.message
-                                        )
-                                    }
-                                    // Reflect the UI for reconnection attempt
-                                    Log.d("BluetoothViewModel", "Calling onConnectionLost due to connection error")
-                                    onConnectionLost()  // Retry connection when connection fails
-                                }
-
-                                is ConnectionResult.TransferSucceeded -> {
-                                    Log.d("BluetoothViewModel", "Message transfer succeeded: ${result.message}")
-
-                                    _state.update { currentState ->
-                                        val updatedMessages = currentState.messages + result.message // Accumulate received messages
-                                        Log.d("BluetoothViewModel", "Updated message list (after receiving): $updatedMessages")
-
-                                        currentState.copy(messages = updatedMessages) // Properly update state with accumulated messages
-                                    }
-
-                                    // see if message is regarding image
-                                    handleReceivedImageMessage(result.message, sharedViewModel)
-
-                                    // see if message is regarding the robot movement
-                                    handleReceivedMovementMessage(result.message, carViewModel)
-
-                                }
+                            _state.update {
+                                it.copy(
+                                    isConnecting = false,
+                                    isConnected = true,
+                                    connectingDevice = null,
+                                    connectedDevice = BluetoothDevice(device.name, device.address),
+                                    failedDevice = null
+                                )
                             }
+
+                            // Start listening for incoming messages
+                            listenForIncomingMessages(sharedViewModel, carViewModel)
                         }
-                        .launchIn(viewModelScope)
+
+                        is ConnectionResult.Error -> {
+                            Log.e("BluetoothViewModel", "Connection error: ${connectionResult.message}")
+
+                            _state.update {
+                                it.copy(
+                                    isConnecting = false,
+                                    connectingDevice = null,
+                                    failedDevice = device,
+                                    errorMessage = connectionResult.message
+                                )
+                            }
+
+                            onConnectionLost(sharedViewModel, carViewModel)
+                        }
+
+                        is ConnectionResult.TransferSucceeded -> TODO()
+                    }
                 }
             } catch (e: TimeoutCancellationException) {
                 Log.e("BluetoothViewModel", "Connection timed out for device: ${device.address}")
@@ -186,16 +167,46 @@ open class BluetoothViewModel @Inject constructor(
                         errorMessage = "Connection timed out"
                     )
                 }
-                onConnectionLost()  // Retry connection after failure
+                onConnectionLost(sharedViewModel, carViewModel)
             }
         }
     }
 
-    // Reconnect to the last paired device if the connection is lost
-    fun reconnectToLastPairedDevice() {
-
+    private fun listenForIncomingMessages(
+        sharedViewModel: SharedViewModel,
+        carViewModel: CarViewModel
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
-            _state.update { it.copy(isConnecting = true) }  // Show loading icon during reconnection
+            bluetoothController.listenForIncomingMessages().onEach { result ->
+                when (result) {
+                    is ConnectionResult.TransferSucceeded -> {
+                        Log.d("BluetoothViewModel", "Received message: ${result.message}")
+
+                        _state.update { currentState ->
+                            val updatedMessages = currentState.messages + result.message
+                            Log.d("BluetoothViewModel", "Updated message list (after receiving): $updatedMessages")
+                            currentState.copy(messages = updatedMessages)
+                        }
+
+                        // Handle specific message types
+                        handleReceivedImageMessage(result.message, sharedViewModel)
+                        handleReceivedMovementMessage(result.message, carViewModel)
+                    }
+                    is ConnectionResult.Error -> {
+                        Log.e("BluetoothViewModel", "Error receiving message cause connection Result failed: ${result.message}")
+                    }
+                    else -> { /* Ignore other results */ }
+                }
+            }.catch { e ->
+                Log.e("BluetoothViewModel", "Error receiving messages: ${e.message}")
+            }.launchIn(viewModelScope)
+        }
+    }
+
+    fun reconnectToLastPairedDevice(sharedViewModel: SharedViewModel, carViewModel: CarViewModel) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _state.update { it.copy(isConnecting = true) }
+
             when (val result = bluetoothController.reconnectToLastDevice()) {
                 is ConnectionResult.ConnectionEstablished -> {
                     Log.d("BluetoothViewModel", "Reconnection successful")
@@ -204,51 +215,48 @@ open class BluetoothViewModel @Inject constructor(
                             isConnected = true,
                             isConnecting = false,
                             failedDevice = null,
-                            errorMessage = null  // Clear error message
+                            errorMessage = null
                         )
                     }
+
+                    // Start listening for incoming messages again
+                    listenForIncomingMessages(sharedViewModel, carViewModel)
                 }
 
                 is ConnectionResult.Error -> {
+                    Log.e("BluetoothViewModel", "Reconnection failed: ${result.message}")
                     _state.update {
                         it.copy(
                             isConnected = false,
                             isConnecting = false,
                             errorMessage = result.message,
-                            failedDevice = bluetoothController.lastConnectedDevice  // Track the failed device
+                            failedDevice = bluetoothController.lastConnectedDevice
                         )
                     }
                 }
 
-                else -> {
-                    // Handle other cases like TransferSucceeded, or do nothing
-                }
+                is ConnectionResult.TransferSucceeded -> {}
             }
         }
     }
 
+
     // Automatically attempt to reconnect if the connection is lost
-    private fun onConnectionLost() {
-
-        Log.d("BluetoothViewModel", "onConnectionLost() is called")
-        _state.update {
-            it.copy(
-                isConnected = false,
-                errorMessage = "Connection lost, attempting to reconnect..."
-            )
-        }
-        Log.d("BluetoothViewModel", "Attempting to reconnectToLastPairedDevice")
-        reconnectToLastPairedDevice()  // Try to reconnect
-    }
-
-    // Wait for incoming Bluetooth connections
-    private fun waitForIncomingConnections() {
-        _state.update { it.copy(isConnecting = true) }
-        deviceConnectionJob = viewModelScope.launch(Dispatchers.IO) {
-            bluetoothController.startBluetoothServer()
-                .listen()  // Listen for incoming connections and messages
+    private fun onConnectionLost(sharedViewModel: SharedViewModel, carViewModel: CarViewModel) {
+        Log.d("BluetoothViewModel", "onConnectionLost() called. Attempting to close the previous connection.")
+        viewModelScope.launch(Dispatchers.IO) {
+            bluetoothController.closeConnection() // Ensure the previous connection is properly closed
+            _state.update {
+                it.copy(
+                    isConnected = false,
+                    errorMessage = "Connection lost, attempting to reconnect..."
+                )
+            }
+            reconnectToLastPairedDevice(sharedViewModel, carViewModel)
         }
     }
+
+
 
     // Function to send a BluetoothMessage (Text, Info, or Obstacle)
     fun sendMessage(bluetoothMessage: BluetoothMessage) {
@@ -345,7 +353,10 @@ open class BluetoothViewModel @Inject constructor(
         bluetoothController.closeConnection()  // Call the close function here
     }
 
-    private fun handleReceivedImageMessage(message: BluetoothMessage, sharedViewModel: SharedViewModel) {
+    private fun handleReceivedImageMessage(
+        message: BluetoothMessage,
+        sharedViewModel: SharedViewModel
+    ) {
         // Check if the message is an instance of ImageMessage
         if (message is ImageMessage) {
             // Log the received message
@@ -356,7 +367,10 @@ open class BluetoothViewModel @Inject constructor(
         }
     }
 
-    private fun handleReceivedMovementMessage(message: BluetoothMessage, carViewModel: CarViewModel) {
+    private fun handleReceivedMovementMessage(
+        message: BluetoothMessage,
+        carViewModel: CarViewModel
+    ) {
         // Check if the message is an instance of MovementMessage
         if (message is MovementMessage) {
             // Log the received message
